@@ -1,0 +1,23 @@
+{
+  "name": "greenchemai",
+  "version": "1.0.0",
+  "description": "GreenChemAI — «Жасыл химияға кіріспе» курсына арналған жасанды интеллект пен Case Study әдістемесіне негізделген интерактивті білім беру платформасы",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test tests/*.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cz44rdzw6w-collab/GreenChem.git"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0"
+  }
+}
