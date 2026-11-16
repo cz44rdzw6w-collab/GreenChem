@@ -3,10 +3,16 @@ const KEY = "greenchemai.progress.v1";
 
 const blank = () => ({
   student: "",
+  group: "",
+  email: "",
   quiz: {}, // { [principleId]: { answer, correct } }
   metrics: {}, // { ae|ef|pmi|rme|mm: timestamp }
   drafts: {}, // { [caseId]: { [taskId]: value } }
   cases: {}, // { [caseId]: result }
+  tests: {}, // { [testId]: { attempts: [{ at, percent, passed, correct, total, durationSec }], best } }
+  testRun: {}, // { [testId]: ағымдағы талпыныс }
+  lectures: {}, // { [lectureId]: оқылған уақыт }
+  submissions: [], // ұйымдастырушыға жіберілген жұмыстар
   assistant: { questions: 0 },
   activity: [], // [{ t, text }]
 });
@@ -55,7 +61,8 @@ export const store = {
   },
 };
 
-export const TOTALS = { quiz: 12, metrics: 4, cases: 5 };
+export const TOTALS = { quiz: 12, metrics: 4, cases: 5, tests: 4 };
+export const WEIGHTS = { tests: 0.3, cases: 0.5, quiz: 0.1, metrics: 0.1 };
 
 export function progressSummary(s = state) {
   const quizDone = Object.keys(s.quiz).length;
@@ -64,10 +71,21 @@ export function progressSummary(s = state) {
   const caseResults = Object.values(s.cases);
   const casesDone = caseResults.length;
   const caseAvg = casesDone ? caseResults.reduce((a, r) => a + r.percent, 0) / casesDone : 0;
-  const done = quizDone + metricsDone + casesDone;
-  const total = TOTALS.quiz + TOTALS.metrics + TOTALS.cases;
+  const testBests = Object.values(s.tests || {}).filter((t) => t.attempts?.length);
+  const testsDone = testBests.length;
+  const testsPassed = testBests.filter((t) => t.passed).length;
+  const testsSum = testBests.reduce((a, t) => a + (t.best || 0), 0);
+  const testsAvg = testsDone ? testsSum / testsDone : 0;
+  const done = quizDone + metricsDone + casesDone + testsDone;
+  const total = TOTALS.quiz + TOTALS.metrics + TOTALS.cases + TOTALS.tests;
+  const overall = Math.round(
+    (testsSum / TOTALS.tests) * WEIGHTS.tests +
+      (caseResults.reduce((a, r) => a + r.percent, 0) / TOTALS.cases) * WEIGHTS.cases +
+      (quizCorrect / TOTALS.quiz) * 100 * WEIGHTS.quiz +
+      (metricsDone / TOTALS.metrics) * 100 * WEIGHTS.metrics
+  );
   return {
-    quizDone, quizCorrect, metricsDone, casesDone, caseAvg,
+    quizDone, quizCorrect, metricsDone, casesDone, caseAvg, testsDone, testsPassed, testsAvg, overall,
     done, total, percent: Math.round((done / total) * 100),
   };
 }

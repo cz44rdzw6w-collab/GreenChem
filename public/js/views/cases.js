@@ -4,6 +4,9 @@ import { evaluateCase, evaluateTask } from "../evaluator.js";
 import { ask, aiEvaluate, renderMarkdown, checkAi } from "../assistant-engine.js";
 import { esc, toast } from "../ui.js";
 import { resultHtml, levelsLegend } from "./report.js";
+import { ensureProfile } from "../profile.js";
+import { submitWork, statusHtml, bindStatusActions, lastSubmission } from "../submit.js";
+import { answerText } from "../evaluator.js";
 
 const COLORS = { green: "bg-green", yellow: "bg-yellow", pink: "bg-pink" };
 
@@ -116,7 +119,7 @@ function renderCase(el, c) {
               </div>`;
             }).join("")}
             <div class="btn-row">
-              <button class="btn" type="submit">📤 Жауаптарды бағалауға жіберу</button>
+              <button class="btn" type="submit">📤 Жауаптарды тапсыру</button>
               <button class="btn secondary" type="button" id="clearDraft">Жауаптарды тазарту</button>
             </div>
           </form>
@@ -124,6 +127,7 @@ function renderCase(el, c) {
         <div class="card" id="resultCard" ${result ? "" : "hidden"}>
           <h2>📋 Бағалау нәтижесі</h2>
           <div id="resultBody">${result ? resultHtml(result, c) : ""}</div>
+          <div id="subStatus">${result ? statusHtml(lastSubmission("case", c.id)) : ""}</div>
           <div class="btn-row" style="margin-top:14px">
             <button class="btn pink" id="aiReview">🤖 AI арқылы терең бағалау</button>
             ${idx < CASES.length - 1 ? `<a class="btn" href="#/cases/${CASES[idx + 1].id}">Келесі модуль →</a>` : `<a class="btn" href="#/assessment">Қорытынды есепке өту →</a>`}
@@ -219,11 +223,32 @@ function renderCase(el, c) {
     renderCase(el, c);
   });
 
-  form.addEventListener("submit", (e) => {
+  bindStatusActions(el.querySelector("#resultCard"), () => {
+    const box = el.querySelector("#subStatus");
+    if (box) box.innerHTML = statusHtml(lastSubmission("case", c.id));
+  });
+
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
+    if (!(await ensureProfile())) return toast("Жұмысты тапсыру үшін профильді толтырыңыз");
+    const btn = form.querySelector('button[type="submit"]');
+    btn.disabled = true;
     const r = evaluateCase(c, answers);
-    store.update((st) => { st.drafts[c.id] = { ...answers }; st.cases[c.id] = r; }, `${c.stage}-кейс бағаланды: ${r.percent}%`);
-    toast(`Бағалау аяқталды: ${r.percent}% (${r.level})`);
+    store.update((st) => { st.drafts[c.id] = { ...answers }; st.cases[c.id] = r; }, `${c.stage}-кейс тапсырылды: ${r.percent}%`);
+    const sub = await submitWork({
+      kind: "case",
+      itemId: c.id,
+      title: `${c.stage}-модуль. ${c.title}`,
+      percent: r.percent,
+      score: `${r.points}/${r.maxPoints}`,
+      level: r.level,
+      criteria: r.criteria.map((k) => ({ name: k.name, percent: k.percent, weight: k.weight })),
+      details: c.tasks.map((t, i) => {
+        const tr = r.taskResults[t.id];
+        return { n: i + 1, question: t.label, answer: answerText(t, answers[t.id]), result: `${Math.round(tr.score * 100)}%` };
+      }),
+    });
+    toast(`Бағалау: ${r.percent}% (${r.level})${sub.status === "sent" ? " · ұйымдастырушыға жіберілді" : ""}`);
     renderCase(el, c);
     el.querySelector("#resultCard").scrollIntoView({ behavior: "smooth" });
   });

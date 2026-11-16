@@ -1,4 +1,7 @@
-import { store, progressSummary, TOTALS } from "../store.js";
+import { store, progressSummary, TOTALS, WEIGHTS } from "../store.js";
+import { TESTS } from "../data/quizzes.js";
+import { CONFIG, submissionEnabled } from "../config.js";
+import { flushOutbox } from "../submit.js";
 import { CASES, levelFor } from "../data/cases.js";
 import { PRINCIPLES } from "../data/principles.js";
 import { esc, ring, bar, toast, timeAgo } from "../ui.js";
@@ -19,17 +22,18 @@ export function render(el) {
   const unanswered = PRINCIPLES.filter((pr) => !s.quiz[pr.id]);
   const missingMetrics = Object.keys(METRIC_NAMES).filter((k) => !s.metrics[k]);
 
-  const overall = Math.round(
-    (p.quizDone ? (p.quizCorrect / TOTALS.quiz) * 100 : 0) * 0.2 +
-      (p.metricsDone / TOTALS.metrics) * 100 * 0.1 +
-      (results.reduce((a, c) => a + s.cases[c.id].percent, 0) / TOTALS.cases) * 0.7
-  );
+  const overall = p.overall;
+  const W = (k) => Math.round(WEIGHTS[k] * 100);
   const lvl = levelFor(overall);
 
   const recs = [];
   if (unanswered.length) recs.push(`${unanswered.length} қағида бойынша тест сұрағына әлі жауап берілмеген.`);
   if (wrongPrinciples.length) recs.push(`Қайталау: ${wrongPrinciples.map((x) => `${x.id}-қағида (${x.title})`).join(", ")}.`);
   if (missingMetrics.length) recs.push(`Калькуляторда жаттығыңыз: ${missingMetrics.map((k) => METRIC_NAMES[k]).join(", ")}.`);
+  const failedTests = TESTS.filter((t) => s.tests[t.id]?.attempts?.length && !s.tests[t.id].passed);
+  const nextTest = TESTS.find((t) => !s.tests[t.id]?.attempts?.length);
+  if (failedTests.length) recs.push(`Өтпеген тесттер: ${failedTests.map((t) => t.title).join("; ")}. Тақырыпты қайталап, қайта тапсырыңыз.`);
+  if (nextTest) recs.push(`Бағаланатын тест: «${nextTest.title}».`);
   const nextCase = CASES.find((c) => !s.cases[c.id]);
   if (nextCase) recs.push(`Келесі қадам: ${nextCase.stage}-модуль «${nextCase.title}».`);
   weak.slice(0, 2).forEach((k) => recs.push(`«${k.name}» критерийін жетілдіріңіз (${k.stage}-кейс: ${k.percent}%) — AI көмекшінің «Кеңес» режимін пайдаланыңыз.`));
@@ -40,7 +44,7 @@ export function render(el) {
       <div>
         <div class="eyebrow">6-бөлім</div>
         <h1>Бағалау және кері байланыс</h1>
-        <p>Рубрика бойынша нәтижелер, күшті жақтар, жетілдіру бағыттары және оқу прогресі.</p>
+        <p>Тест пен кейс нәтижелері, күшті жақтар, жетілдіру бағыттары және оқу прогресі.</p>
       </div>
       <div class="btn-row no-print">
         <button class="btn secondary sm" id="print">🖨 Есепті басып шығару</button>
@@ -51,19 +55,20 @@ export function render(el) {
 
     <div class="grid grid-2">
       <div class="card">
-        <h2>Жалпы нәтиже${s.student ? ` — ${esc(s.student)}` : ""}</h2>
+        <h2>Жалпы нәтиже${s.student ? ` — ${esc(s.student)}${s.group ? `, ${esc(s.group)}` : ""}` : ""}</h2>
         <div class="score-head">
           ${ring(overall, "Жалпы баға")}
           <div>
             <p style="margin:0"><strong class="${lvl.cls}" style="font-size:1.2rem">${lvl.name}</strong></p>
-            <p class="small muted" style="margin:4px 0 0">Салмақтар: тест 20% · метрикалар 10% · кейстер 70%</p>
+            <p class="small muted" style="margin:4px 0 0">Салмақтар: тесттер ${W("tests")}% · кейстер ${W("cases")}% · қағида сұрақтары ${W("quiz")}% · метрикалар ${W("metrics")}%</p>
             <p class="small muted" style="margin:2px 0 0">Орындалған тапсырмалар: ${p.done} / ${p.total}</p>
           </div>
         </div>
         <div class="table-wrap" style="margin-top:14px"><table>
           <thead><tr><th>Компонент</th><th>Орындалды</th><th>Нәтиже</th></tr></thead>
           <tbody>
-            <tr><td>12 қағида бойынша тест</td><td>${p.quizDone}/${TOTALS.quiz}</td><td>${p.quizCorrect} дұрыс</td></tr>
+            <tr><td>Бағаланатын тесттер</td><td>${p.testsDone}/${TOTALS.tests}</td><td>${p.testsDone ? `${p.testsPassed} өтті · орт. ${Math.round(p.testsAvg)}%` : "—"}</td></tr>
+            <tr><td>12 қағида бойынша сұрақтар</td><td>${p.quizDone}/${TOTALS.quiz}</td><td>${p.quizCorrect} дұрыс</td></tr>
             <tr><td>Метрика калькуляторлары</td><td>${p.metricsDone}/${TOTALS.metrics}</td><td>${p.metricsDone === 4 ? "✓ толық" : "жалғасуда"}</td></tr>
             <tr><td>Case Study модульдері</td><td>${p.casesDone}/${TOTALS.cases}</td><td>${p.casesDone ? `орт. ${Math.round(p.caseAvg)}%` : "—"}</td></tr>
             <tr><td>AI көмекшіге сұрақтар</td><td colspan="2">${s.assistant.questions || 0}</td></tr>
@@ -87,9 +92,23 @@ export function render(el) {
 
     <div class="card">
       <h2>Тапсырмаларды бақылау</h2>
+      <div class="grid grid-2" style="margin-bottom:18px">
+        <div>
+          <h3>Бағаланатын тесттер</h3>
+          <ul class="activity">${TESTS.map((t) => {
+            const r = s.tests[t.id];
+            return `<li><a href="#/tests/${t.id}">${esc(t.title)}</a><span>${r?.attempts?.length ? `<strong class="${r.passed ? "ok" : "bad"}">${r.best}% ${r.passed ? "✓" : "✗"}</strong> · ${r.attempts.length}/${t.attempts}` : "○"}</span></li>`;
+          }).join("")}</ul>
+        </div>
+        <div>
+          <h3>Ұйымдастырушыға жіберілген жұмыстар</h3>
+          <p class="small muted" style="margin:0 0 6px">${submissionEnabled() ? `Нәтижелер автоматты жіберіледі${CONFIG.organizerName ? `: ${esc(CONFIG.organizerName)}` : ""}.` : "Автоматты жіберу бапталмаған: нәтижелер осы құрылғыда сақталады."}</p>
+          ${s.submissions.length ? `<ul class="activity">${s.submissions.slice(0, 8).map((x) => `<li><span>${esc(x.title)} · ${x.percent}%</span><span>${x.status === "sent" ? "📨 жіберілді" : x.status === "pending" ? "⏳ кезекте" : "💾 сақталды"}</span></li>`).join("")}</ul>${s.submissions.some((x) => x.status === "pending") ? `<button class="btn secondary sm" id="retry">↻ Кезектегілерді қайта жіберу</button>` : ""}` : `<p class="muted small">Әзірге тапсырылған жұмыс жоқ.</p>`}
+        </div>
+      </div>
       <div class="grid grid-3">
         <div>
-          <h3>Қағидалар тесті</h3>
+          <h3>Қағидалар бойынша сұрақтар</h3>
           <div class="chips">${PRINCIPLES.map((pr) => {
             const q = s.quiz[pr.id];
             const cls = q ? (q.correct ? "background:#e6f4ea;border-color:#a9d8b8" : "background:#fdecef;border-color:#f0b4c2") : "";
@@ -122,6 +141,11 @@ export function render(el) {
       ${levelsLegend()}
     </div>`;
 
+  el.querySelector("#retry")?.addEventListener("click", async () => {
+    await flushOutbox();
+    toast("Қайта жіберу аяқталды");
+    render(el);
+  });
   el.querySelector("#print").addEventListener("click", () => window.print());
   el.querySelector("#export").addEventListener("click", () => {
     const blob = new Blob([store.exportJson()], { type: "application/json" });

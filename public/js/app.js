@@ -6,12 +6,17 @@ import * as metrics from "./views/metrics.js";
 import * as cases from "./views/cases.js";
 import * as assistant from "./views/assistant.js";
 import * as assessment from "./views/assessment.js";
+import * as lectures from "./views/lectures.js";
+import * as tests from "./views/tests.js";
+import { flushOutbox } from "./submit.js";
 
 const ROUTES = {
   "": { view: home, title: "Басты бет", key: "home" },
+  lectures: { view: lectures, title: "Лекциялар", key: "lectures" },
   principles: { view: principles, title: "Жасыл химияның 12 қағидасы", key: "principles" },
   metrics: { view: metrics, title: "Жасыл химия метрикалары", key: "metrics" },
   cases: { view: cases, title: "Case Study", key: "cases" },
+  tests: { view: tests, title: "Тесттер", key: "tests" },
   assistant: { view: assistant, title: "AI көмекші", key: "assistant" },
   assessment: { view: assessment, title: "Бағалау және кері байланыс", key: "assessment" },
 };
@@ -72,6 +77,8 @@ window.addEventListener("hashchange", render);
 store.subscribe(renderSidebarProgress);
 renderSidebarProgress();
 render();
+
+flushOutbox();
 
 checkAi().then((on) => {
   const badge = document.getElementById("aiBadge");

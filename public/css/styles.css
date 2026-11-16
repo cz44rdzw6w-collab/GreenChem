@@ -324,6 +324,41 @@ tr:last-child td { border-bottom: 0; }
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; background: var(--green-900); color: #fff; padding: 12px 18px; border-radius: 12px; box-shadow: var(--shadow-lg); transition: transform 0.3s, opacity 0.3s; z-index: 60; font-size: 0.92rem; max-width: calc(100vw - 32px); }
 .toast.show { transform: translate(-50%, 0); opacity: 1; }
 
+/* Тесттер */
+.ok:not(.task):not(.feedback-msg) { color: var(--green-700); }
+.bad:not(.task):not(.feedback-msg) { color: #9b2a43; }
+.test-facts { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.84rem; color: var(--ink-2); }
+.test-bar { position: sticky; top: 64px; z-index: 5; display: flex; justify-content: space-between; align-items: center; gap: 12px; background: var(--card); border: 1.5px solid var(--line); border-radius: var(--radius); padding: 12px 18px; margin-bottom: 14px; box-shadow: var(--shadow); }
+.timer { font-variant-numeric: tabular-nums; font-weight: 800; font-size: 1.25rem; color: var(--green-900); background: var(--green-100); padding: 6px 14px; border-radius: 999px; white-space: nowrap; }
+.timer.low { color: #7d2034; background: var(--pink-100); animation: pulse 1s infinite; }
+@keyframes pulse { 50% { opacity: 0.6; } }
+.review-list { list-style: none; padding: 0; margin: 16px 0 0; }
+.review-list .task { margin-bottom: 10px; }
+
+/* Жіберу күйі */
+.sub-status { margin-top: 12px; border-radius: 12px; padding: 10px 14px; font-size: 0.9rem; }
+.sub-status.sent { background: var(--green-100); color: var(--green-900); }
+.sub-status.pending { background: var(--yellow-100); color: #5c4500; }
+.sub-status.local { background: #f3f5f4; color: var(--ink-2); }
+.sub-status .btn-row { display: flex; }
+
+/* Профиль диалогы */
+dialog.modal { border: none; border-radius: var(--radius); padding: 22px; width: min(520px, calc(100vw - 32px)); box-shadow: var(--shadow-lg); color: var(--ink); }
+dialog.modal::backdrop { background: rgba(29, 77, 49, 0.35); }
+
+/* Лекциялар */
+.lecture { display: flex; gap: 14px; padding: 14px 0; border-top: 1px solid var(--line); }
+.card h2 + .lecture { border-top: none; padding-top: 4px; }
+.lec-ico { width: 46px; height: 46px; flex: none; border-radius: 13px; display: grid; place-items: center; font-size: 1.4rem; background: var(--green-50); }
+.lec-body { flex: 1; min-width: 0; }
+.lec-title { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.lec-viewer { margin-top: 12px; }
+.viewer { width: 100%; height: min(75vh, 720px); border: 1.5px solid var(--line); border-radius: 12px; background: #fff; display: block; }
+.viewer.video { height: auto; aspect-ratio: 16 / 9; }
+video.viewer { height: auto; max-height: 75vh; background: #000; }
+.teacher-help summary { cursor: pointer; }
+.teacher-help { margin-top: 18px; }
+
 @media print {
   .sidebar, .topbar, .footer, .btn, .no-print { display: none !important; }
   .main { margin: 0; }

@@ -1,6 +1,7 @@
 import { store, progressSummary, TOTALS } from "../store.js";
 import { ring, bar, esc, timeAgo } from "../ui.js";
 import { CASES } from "../data/cases.js";
+import { profileFieldsHtml, bindProfileFields } from "../profile.js";
 
 const OBJECTIVES = [
   "Жасыл химияның тарихын, анықтамасын және 12 қағидасын түсіндіру.",
@@ -11,9 +12,11 @@ const OBJECTIVES = [
 ];
 
 const MODULES = [
+  { href: "#/lectures", icon: "🎓", bg: "bg-pink", title: "Лекциялар", text: "Мұғалім жүктеген дәріс слайдтары, конспектілер мен бейнелер: сайтта қарау немесе жүктеп алу." },
   { href: "#/principles", icon: "🌿", bg: "bg-green", title: "12 қағида", text: "Әр қағиданың түсіндірмесі, өнеркәсіптік мысалдар және білімді тексеру сұрақтары." },
   { href: "#/metrics", icon: "📐", bg: "bg-yellow", title: "Жасыл метрикалар", text: "AE, E-фактор, PMI, RME: формулалар, шығарылған мысалдар және автоматты калькуляторлар." },
   { href: "#/cases", icon: "📂", bg: "bg-pink", title: "Case Study", text: "Мәселені анықтаудан шешімді жобалауға дейінгі бес прогрессивті модуль." },
+  { href: "#/tests", icon: "📝", bg: "bg-pink", title: "Тесттер", text: "Уақыт шегі, өту шегі және талпыныстары бар бағаланатын модуль тесттері мен қорытынды емтихан." },
   { href: "#/assistant", icon: "🤖", bg: "bg-green", title: "AI көмекші", text: "Түсіндірме, бағыттаушы кеңес және жауапқа кері байланыс беретін интеллектуалды көмекші." },
   { href: "#/assessment", icon: "📊", bg: "bg-yellow", title: "Бағалау", text: "Рубрика бойынша нәтижелер, күшті жақтар, жетілдіру бағыттары және прогресс." },
 ];
@@ -56,7 +59,7 @@ export function render(el) {
     <div class="card stat"><span class="num">12</span><span class="lbl">жасыл химия қағидасы</span></div>
     <div class="card stat"><span class="num">4</span><span class="lbl">сандық метрика мен калькулятор</span></div>
     <div class="card stat"><span class="num">5</span><span class="lbl">прогрессивті кейс-модуль</span></div>
-    <div class="card stat"><span class="num">24/7</span><span class="lbl">AI көмекші қолдауы</span></div>
+    <div class="card stat"><span class="num">4</span><span class="lbl">бағаланатын тест пен емтихан</span></div>
   </section>
 
   <section class="section grid grid-2">
@@ -67,13 +70,11 @@ export function render(el) {
     </div>
     <div class="card">
       <h2>Менің прогресім</h2>
-      <div class="field">
-        <label for="studentName">Студенттің аты-жөні</label>
-        <input class="input" id="studentName" placeholder="Мысалы: Әлия Серікқызы" value="${esc(s.student)}" />
-      </div>
+      ${profileFieldsHtml(s, "home")}
       <div class="progress-overview">
         ${ring(p.percent, "Жалпы прогресс")}
         <div class="rows">
+          <div><div class="row-lbl"><span>Бағаланатын тесттер</span><span>${p.testsDone}/${TOTALS.tests}${p.testsDone ? ` · ${p.testsPassed} өтті` : ""}</span></div>${bar((p.testsDone / TOTALS.tests) * 100, "pink")}</div>
           <div><div class="row-lbl"><span>Қағидалар бойынша тест</span><span>${p.quizDone}/${TOTALS.quiz} · ${p.quizCorrect} дұрыс</span></div>${bar((p.quizDone / TOTALS.quiz) * 100)}</div>
           <div><div class="row-lbl"><span>Метрикалар калькуляторы</span><span>${p.metricsDone}/${TOTALS.metrics}</span></div>${bar((p.metricsDone / TOTALS.metrics) * 100)}</div>
           <div><div class="row-lbl"><span>Case Study модульдері</span><span>${p.casesDone}/${TOTALS.cases}${p.casesDone ? ` · орт. ${Math.round(p.caseAvg)}%` : ""}</span></div>${bar((p.casesDone / TOTALS.cases) * 100, "pink")}</div>
@@ -104,7 +105,5 @@ export function render(el) {
     </div>
   </section>`;
 
-  el.querySelector("#studentName").addEventListener("change", (e) => {
-    store.update((st) => (st.student = e.target.value.trim()));
-  });
+  bindProfileFields(el);
 }
