@@ -6,6 +6,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Anthropic from "@anthropic-ai/sdk";
+import { buildManifest } from "./scripts/lectures-manifest.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(here, "public");
@@ -33,6 +34,18 @@ const MIME = {
   ".png": "image/png",
   ".ico": "image/x-icon",
   ".webmanifest": "application/manifest+json",
+  ".pdf": "application/pdf",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
+  ".mp4": "video/mp4",
+  ".webm": "video/webm",
+  ".mp3": "audio/mpeg",
+  ".m4a": "audio/mp4",
+  ".txt": "text/plain; charset=utf-8",
+  ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 };
 
 const SYSTEM_PROMPT = `Сен — GreenChemAI платформасындағы «Жасыл химияға кіріспе» университеттік курсының AI көмекшісісің.
@@ -197,6 +210,10 @@ async function serveStatic(res, pathname) {
 const server = http.createServer(async (req, res) => {
   const { pathname } = new URL(req.url, "http://localhost");
   if (pathname.startsWith("/api/")) return handleApi(req, res, pathname);
+  if (pathname === "/lectures/index.json") {
+    // Жергілікті серверде тізім әр сұраныста қалтадан жаңадан құрастырылады.
+    return sendJson(res, 200, await buildManifest());
+  }
   return serveStatic(res, pathname);
 });
 

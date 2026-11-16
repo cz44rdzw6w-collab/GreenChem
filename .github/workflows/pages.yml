@@ -24,6 +24,13 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # лекциялардың жүктелген күнін git тарихынан алу үшін
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build lectures list
+        run: node scripts/lectures-manifest.mjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
