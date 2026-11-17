@@ -8,7 +8,14 @@ import { esc, toast, bar } from "../ui.js";
 
 const words = (s) => (String(s || "").match(/[\p{L}\p{N}]+/gu) || []).length;
 const data = (id) => store.get().industries?.[id] || { answers: {} };
-const answered = (t, a) => (t.type === "number" ? String(a?.[t.id] ?? "").trim() !== "" : words(a?.[t.id]) > 0);
+const parts = (t) => t.parts || [{ key: t.id, label: "Жауап", answer: t.answer, tol: t.tol, unit: t.unit }];
+const answered = (t, a) =>
+  t.type === "number" ? parts(t).some((pt) => String(a?.[pt.key] ?? "").trim() !== "") : words(a?.[t.id]) > 0;
+const partOk = (pt, v) => {
+  const x = parseNumber(v);
+  return Number.isFinite(x) && Math.abs(x - pt.answer) / Math.abs(pt.answer) <= pt.tol;
+};
+const fmtNum = (x) => String(x).replace(".", ",");
 export const industryProgress = (ind) => {
   const a = data(ind.id).answers || {};
   return { done: (ind.tasks || []).filter((t) => answered(t, a)).length, total: (ind.tasks || []).length };
@@ -112,11 +119,17 @@ function taskHtml(t, i, a, checked) {
   const v = a[t.id] ?? "";
   let field;
   if (t.type === "number") {
-    const res = checked?.[t.id];
-    field = `
-      <label class="small" for="ans-${t.id}">Жауап</label>
-      <div class="input-unit" style="max-width:360px"><input class="input" id="ans-${t.id}" data-ans="${t.id}" inputmode="decimal" placeholder="Мысалы: 1,25" value="${esc(v)}"><span>${esc(t.unit)}</span></div>
-      ${res ? `<div class="small ${res === "ok" ? "ok" : "bad"}" style="margin-top:6px">${res === "ok" ? "✓ Сандық жауап дұрыс" : `✗ Сандық жауап сәйкес емес (күтілетін мән ≈ ${String(t.answer).replace(".", ",")} ${esc(t.unit)})`}</div>` : ""}
+    field = parts(t)
+      .map((pt, k) => {
+        const res = checked?.[pt.key];
+        const fid = k === 0 ? `ans-${t.id}` : `ans-${pt.key}`;
+        return `<div class="num-part">
+        <label class="small" for="${fid}">${esc(pt.label)}</label>
+        <div class="input-unit" style="max-width:380px"><input class="input" id="${fid}" data-ans="${pt.key}" inputmode="decimal" placeholder="Мысалы: 1,25" value="${esc(a[pt.key] ?? "")}"><span>${esc(pt.unit)}</span></div>
+        ${res ? `<div class="small ${res === "ok" ? "ok" : "bad"}" style="margin-top:4px">${res === "ok" ? "✓ Дұрыс" : `✗ Сәйкес емес (күтілетін мән ≈ ${fmtNum(pt.answer)} ${esc(pt.unit)})`}</div>` : ""}
+      </div>`;
+      })
+      .join("") + `
       <label class="small" for="ans-${t.id}-work" style="margin-top:10px;display:block">Есептеу жолы</label>
       <textarea id="ans-${t.id}-work" data-ans="${t.id}_work" placeholder="Молярлық массаларды, теңдеуді және есептеу қадамдарын жазыңыз…">${esc(a[t.id + "_work"] ?? "")}</textarea>`;
   } else {
@@ -190,10 +203,8 @@ function renderCases(el, ind) {
     if (p.done < p.total && !confirm(`${p.total - p.done} тапсырмаға жауап жазылмаған. Тапсыра бересіз бе?`)) return;
     if (!(await ensureProfile())) return toast("Тапсыру үшін профильді толтырыңыз");
     const checked = {};
-    for (const t of ind.tasks.filter((x) => x.type === "number")) {
-      const x = parseNumber(a[t.id]);
-      checked[t.id] = Number.isFinite(x) && Math.abs(x - t.answer) / Math.abs(t.answer) <= t.tol ? "ok" : "wrong";
-    }
+    for (const t of ind.tasks.filter((x) => x.type === "number"))
+      for (const pt of parts(t)) checked[pt.key] = partOk(pt, a[pt.key]) ? "ok" : "wrong";
     const btn = form.querySelector('button[type="submit"]');
     btn.disabled = true;
     const nums = Object.values(checked);
@@ -207,8 +218,14 @@ function renderCases(el, ind) {
       details: ind.tasks.map((t, i) => ({
         n: i + 1,
         question: `[${t.level}] ${t.q}`,
-        answer: t.type === "number" ? `${answerText({ type: "number", unit: t.unit }, a[t.id]) || "—"}\nЕсептеу жолы: ${a[t.id + "_work"] || "—"}` : a[t.id] || "",
-        result: t.type === "number" ? (checked[t.id] === "ok" ? "✓ сандық жауап дұрыс" : "✗ сандық жауап сәйкес емес") : `${words(a[t.id])} сөз`,
+        answer:
+          t.type === "number"
+            ? `${parts(t).map((pt) => `${pt.label}: ${answerText({ type: "number", unit: pt.unit }, a[pt.key]) || "—"}`).join("; ")}\nЕсептеу жолы: ${a[t.id + "_work"] || "—"}`
+            : a[t.id] || "",
+        result:
+          t.type === "number"
+            ? parts(t).map((pt) => (checked[pt.key] === "ok" ? `✓ ${pt.label}` : `✗ ${pt.label}`)).join("; ")
+            : `${words(a[t.id])} сөз`,
       })),
     });
     store.update((st) => {
