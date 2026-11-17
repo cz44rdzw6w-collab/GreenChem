@@ -7,10 +7,16 @@ import { resultHtml, levelsLegend } from "./report.js";
 import { ensureProfile } from "../profile.js";
 import { submitWork, statusHtml, bindStatusActions, lastSubmission } from "../submit.js";
 import { answerText } from "../evaluator.js";
+import * as projects from "./projects.js";
 
 const COLORS = { green: "bg-green", yellow: "bg-yellow", pink: "bg-pink" };
 
 export function render(el, params) {
+  const pr = projects.projectById(params[0]);
+  if (pr) {
+    projects.render(el, pr);
+    return pr.title;
+  }
   const c = CASES.find((x) => x.id === params[0]);
   if (c) {
     renderCase(el, c);
@@ -23,13 +29,13 @@ export function render(el, params) {
 function renderList(el) {
   const s = store.get();
   el.innerHTML = `
-    <div class="section-head">
-      <div>
-        <div class="eyebrow">4-бөлім</div>
-        <h1>Case Study модульдері</h1>
-        <p>Бес прогрессивті модуль ғылыми зерттеу циклін қайталайды: мәселені анықтаудан бастап, экологиялық таза шешімді жобалауға дейін.</p>
-      </div>
+    <div class="center-head" style="margin-top:6px">
+      <span class="kicker">Кейс-стади әдістемесі</span>
+      <h1>Шынайы өндірістік мәселелер</h1>
+      <p>Екі бағыт: <strong>талдамалы кейстер</strong> рубрика бойынша автоматты бағаланады; <strong>жобалық кейстер</strong> AI-мен бірлесіп шешіліп, оқытушыға тапсырылады.</p>
     </div>
+    <h2>А. Талдамалы кейстер <span class="pill">автоматты бағалау</span></h2>
+    <p class="muted small">Бес прогрессивті модуль ғылыми зерттеу циклін қайталайды: мәселені анықтаудан экологиялық таза шешімді жобалауға дейін.</p>
     <div class="grid grid-3">
       ${CASES.map((c, i) => {
         const r = s.cases[c.id];
@@ -43,13 +49,16 @@ function renderList(el) {
           ? `<span class="pill gray">Бастауға дайын</span>`
           : `<span class="pill pink">Алдымен ${c.stage - 1}-модуль ұсынылады</span>`;
         return `<a class="card case-card" href="#/cases/${c.id}">
-          <div class="stage"><span class="m-ico ${COLORS[c.color]}">${c.icon}</span><div><div class="eyebrow" style="margin:0">${c.stage}-кезең · ${c.duration}</div><strong>${c.stageName}</strong></div></div>
+          <div class="stage"><span class="m-ico ${COLORS[c.color]}">${c.icon}</span><div><div class="kicker" style="margin:0">${c.stage}-кезең · ${c.duration}</div><strong>${c.stageName}</strong></div></div>
           <h3 style="margin:0">${c.title}</h3>
           <p class="muted small" style="margin:0">${c.summary}</p>
           <div style="margin-top:auto">${status}</div>
         </a>`;
       }).join("")}
     </div>
+    <h2 style="margin-top:30px">Б. Жобалық кейстер <span class="pill pink">AI + оқытушы бағасы</span></h2>
+    <p class="muted small">Әр кейс 5 кезеңнен тұрады: мәселе → AI-дан кеңес → ғылыми тексеру → өз шешімің → рубрика бойынша бағалау.</p>
+    <div class="grid grid-2">${projects.listHtml()}</div>
     <div class="card" style="margin-top:22px">
       <h2>Бағалау шкаласы</h2>
       <p class="muted">Әр кейс өз рубрикасымен бағаланады: сандық жауаптар дәлдікпен (±1–2%), ашық жауаптар негізгі ғылыми ұғымдардың қамтылуы мен дәлелдеу толықтығы бойынша тексеріледі.</p>

@@ -8,7 +8,7 @@ export function resultHtml(result, caseDef, { compact = false } = {}) {
     <div class="score-head">
       ${ring(result.percent, "Кейс нәтижесі")}
       <div>
-        <div class="eyebrow">${caseDef.stage}-модуль · ${esc(caseDef.stageName)}</div>
+        <div class="kicker">${caseDef.stage}-модуль · ${esc(caseDef.stageName)}</div>
         <h3 style="margin:0">${esc(caseDef.title)}</h3>
         <p style="margin:4px 0 0"><strong class="${lvl.cls}">${lvl.name}</strong> · ${result.points} / ${result.maxPoints} балл</p>
         <p class="small muted" style="margin:2px 0 0">${lvl.text}</p>

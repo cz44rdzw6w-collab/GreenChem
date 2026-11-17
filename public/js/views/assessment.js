@@ -2,6 +2,8 @@ import { store, progressSummary, TOTALS, WEIGHTS } from "../store.js";
 import { TESTS } from "../data/quizzes.js";
 import { CONFIG, submissionEnabled } from "../config.js";
 import { flushOutbox } from "../submit.js";
+import { PROJECTS, JOURNEY } from "../data/projects.js";
+import { projectDone } from "./projects.js";
 import { CASES, levelFor } from "../data/cases.js";
 import { PRINCIPLES } from "../data/principles.js";
 import { esc, ring, bar, toast, timeAgo } from "../ui.js";
@@ -42,7 +44,7 @@ export function render(el) {
   el.innerHTML = `
     <div class="section-head">
       <div>
-        <div class="eyebrow">6-бөлім</div>
+        <div class="eyebrow">Нәтижелер</div>
         <h1>Бағалау және кері байланыс</h1>
         <p>Тест пен кейс нәтижелері, күшті жақтар, жетілдіру бағыттары және оқу прогресі.</p>
       </div>
@@ -111,7 +113,7 @@ export function render(el) {
           <h3>Қағидалар бойынша сұрақтар</h3>
           <div class="chips">${PRINCIPLES.map((pr) => {
             const q = s.quiz[pr.id];
-            const cls = q ? (q.correct ? "background:#e6f4ea;border-color:#a9d8b8" : "background:#fdecef;border-color:#f0b4c2") : "";
+            const cls = q ? (q.correct ? "background:#DCE3C4;border-color:#B9C691" : "background:#F8D2D8;border-color:#F0A8B8") : "";
             return `<a class="chip" style="${cls};text-decoration:none" href="#/principles/${pr.id}" title="${esc(pr.title)}">${q ? (q.correct ? "✓" : "✗") : "○"} ${pr.id}</a>`;
           }).join("")}</div>
         </div>
@@ -122,6 +124,9 @@ export function render(el) {
         <div>
           <h3>Кейстер</h3>
           <ul class="activity">${CASES.map((c) => `<li><a href="#/cases/${c.id}">${c.stage}. ${c.stageName}</a><span>${s.cases[c.id] ? `<strong class="${levelFor(s.cases[c.id].percent).cls}">${s.cases[c.id].percent}%</strong>` : "○"}</span></li>`).join("")}</ul>
+          <h3 style="margin-top:14px">Жобалық кейстер</h3>
+          <ul class="activity">${PROJECTS.map((x) => `<li><a href="#/cases/${x.id}">${x.icon} ${esc(x.title)}</a><span>${s.projects?.[x.id]?.submittedAt ? "📨 тапсырылды" : `${projectDone(x.id)}/5`}</span></li>`).join("")}</ul>
+          <p class="small muted" style="margin-top:8px">Әдістеме жолы: ${JOURNEY.filter((_, i) => s.journey?.[i]).length} / ${JOURNEY.length} кезең</p>
         </div>
       </div>
     </div>

@@ -39,7 +39,7 @@ function doPost(e) {
     const s = data.student;
     sheet.appendRow([
       new Date(data.submittedAt || Date.now()),
-      data.kind === "test" ? "Тест" : data.kind === "case" ? "Кейс" : String(data.kind || ""),
+      ({ test: "Тест", case: "Кейс", project: "Жобалық кейс" })[data.kind] || String(data.kind || ""),
       safe_(data.title),
       safe_(s.name),
       safe_(s.group),

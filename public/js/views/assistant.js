@@ -37,7 +37,7 @@ export function render(el, params, query) {
   el.innerHTML = `
     <div class="section-head">
       <div>
-        <div class="eyebrow">5-бөлім</div>
+        <div class="eyebrow">AI-кеңесші</div>
         <h1>AI көмекші</h1>
         <p>Химия бойынша сұрақ қойыңыз, кейс тапсырмаларына кеңес алыңыз немесе жауабыңызға кері байланыс сұраңыз.</p>
       </div>

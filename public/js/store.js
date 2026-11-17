@@ -12,6 +12,8 @@ const blank = () => ({
   tests: {}, // { [testId]: { attempts: [{ at, percent, passed, correct, total, durationSec }], best } }
   testRun: {}, // { [testId]: ағымдағы талпыныс }
   lectures: {}, // { [lectureId]: оқылған уақыт }
+  journey: {}, // { [0..5]: true } — AI әдістеме жолының кезеңдері
+  projects: {}, // { [projId]: { stages:{1..5}, resp2, field3, field4, rubric:{}, resp5 } }
   submissions: [], // ұйымдастырушыға жіберілген жұмыстар
   assistant: { questions: 0 },
   activity: [], // [{ t, text }]

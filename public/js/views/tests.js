@@ -63,7 +63,7 @@ function renderList(el) {
     <div class="grid grid-2">
       ${TESTS.map((t) => `
         <a class="card case-card" href="#/tests/${t.id}">
-          <div class="stage"><span class="m-ico ${t.final ? "bg-pink" : "bg-green"}">${t.final ? "🎓" : "📝"}</span><div><div class="eyebrow" style="margin:0">${esc(t.module)}</div><strong>${esc(t.title)}</strong></div></div>
+          <div class="stage"><span class="m-ico ${t.final ? "bg-pink" : "bg-green"}">${t.final ? "🎓" : "📝"}</span><div><div class="kicker" style="margin:0">${esc(t.module)}</div><strong>${esc(t.title)}</strong></div></div>
           <p class="muted small" style="margin:0">${esc(t.description)}</p>
           <div class="test-facts">
             <span>❓ ${qCount(t)} сұрақ</span>
@@ -146,7 +146,7 @@ function reviewHtml(t, a, reveal, idx) {
       <div class="score-head">
         ${ring(a.percent, "Тест нәтижесі")}
         <div>
-          <div class="eyebrow">${idx + 1}-талпыныс</div>
+          <div class="kicker">${idx + 1}-талпыныс</div>
           <h2 style="margin:0">${a.passed ? "✓ Тест сәтті тапсырылды" : "✗ Өту шегіне жетпеді"}</h2>
           <p class="small muted" style="margin:4px 0 0">${a.correct} / ${a.total} балл · өту шегі ${t.passPercent}% · уақыт ${fmtTime(a.durationSec)}</p>
         </div>
