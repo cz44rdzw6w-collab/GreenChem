@@ -16,7 +16,7 @@ const ROUTES = {
   principles: { view: principles, title: "Жасыл химияның 12 қағидасы", key: "principles" },
   metrics: { view: metrics, title: "Жасыл химия метрикалары", key: "metrics" },
   cases: { view: cases, title: "Case Study", key: "cases" },
-  industries: { view: industries, title: "Қазақстан өндірістері", key: "industries" },
+  industries: { view: industries, title: "Қазақстан өндірістері", key: "cases" },
   tests: { view: tests, title: "Тесттер", key: "tests" },
   assistant: { view: assistant, title: "AI көмекші", key: "assistant" },
   assessment: { view: assessment, title: "Бағалау және кері байланыс", key: "assessment" },

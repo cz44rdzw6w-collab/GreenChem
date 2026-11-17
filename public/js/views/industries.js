@@ -27,7 +27,8 @@ async function loadFragment(id) {
 export function render(el, params) {
   const ind = industryById(params[0]);
   if (!ind) {
-    renderList(el);
+    // Өндірістер тізімі «Кейс-стади» бетінде орналасқан
+    location.replace("#/cases");
     return "";
   }
   if (params[1] === "cases" && ind.tasks?.length) renderCases(el, ind);
@@ -56,16 +57,6 @@ export function cardsHtml() {
   }).join("");
 }
 
-function renderList(el) {
-  el.innerHTML = `
-    <div class="center-head" style="margin-top:6px">
-      <span class="kicker">Жеке зерттеу кейстері</span>
-      <h1>Қазақстан өндірістері</h1>
-      <p>15 отандық өндіріс: процестің химиясы, масса мен энергия балансы, 12 қағида бойынша талдау және әр өндіріске арналған кейс тапсырмалары.</p>
-    </div>
-    <div class="grid grid-3">${cardsHtml()}</div>`;
-}
-
 function header(ind, active) {
   const pr = industryProgress(ind);
   const idx = INDUSTRIES.indexOf(ind);
@@ -73,7 +64,7 @@ function header(ind, active) {
   const next = INDUSTRIES[idx + 1];
   return `
     <div class="btn-row" style="justify-content:space-between">
-      <a class="btn ghost sm" href="#/industries">← Барлық өндірістер</a>
+      <a class="btn ghost sm" href="#/cases">← Кейс-стадиге оралу</a>
       <span class="btn-row">
         ${prev ? `<a class="btn ghost sm" href="#/industries/${prev.id}" title="${esc(prev.title)}">‹ №${prev.n}</a>` : ""}
         ${next ? `<a class="btn ghost sm" href="#/industries/${next.id}" title="${esc(next.title)}">№${next.n} ›</a>` : ""}

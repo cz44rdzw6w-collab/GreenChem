@@ -17,7 +17,6 @@ const MODULES = [
   { href: "#/lectures", icon: "📚", bg: "bg-pink", title: "Дәрістер", text: "Дәріс слайдтары, конспектілер мен бейнелер: сайтта қарау немесе жүктеп алу." },
   { href: "#/principles", icon: "🌿", bg: "bg-green", title: "12 қағида", text: "Әр қағиданың түсіндірмесі, өнеркәсіптік мысалдар және білімді тексеру сұрақтары." },
   { href: "#/metrics", icon: "📐", bg: "bg-yellow", title: "Метрикалар", text: "AE, E-фактор, PMI, RME: формулалар, шығарылған мысалдар және калькуляторлар." },
-  { href: "#/industries", icon: "🏭", bg: "bg-yellow", title: "ҚР өндірістері", text: "15 отандық өндіріс: процестің химиясы, масса мен энергия балансы, жауап өрістері бар кейстер." },
   { href: "#/cases", icon: "📂", bg: "bg-pink", title: "Кейс-стади", text: "Қазақстанның 15 өндірісі бойынша жеке зерттеу кейстері және AI-мен шешілетін 5 жобалық кейс." },
   { href: "#/tests", icon: "📝", bg: "bg-green", title: "Тесттер", text: "Уақыт шегі мен өту шегі бар модуль тесттері және қорытынды емтихан." },
   { href: "#/assistant", icon: "🤖", bg: "bg-yellow", title: "AI-кеңесші", text: "Түсіндірме, бағыттаушы кеңес және жауапқа кері байланыс." },
@@ -73,7 +72,7 @@ export function render(el) {
     </div>
     ${earned === ms.length ? `<div class="celebrate">🎉 Барлық белес аяқталды! Сен — AI-жасыл химиксің!</div>` : ""}
     <div class="btn-row">
-      <a class="btn yellow" href="${nextInd ? `#/industries/${nextInd.id}` : "#/industries"}">▶ ${nextInd ? `№${nextInd.n} өндірісті бастау` : "ҚР өндірістері"}</a>
+      <a class="btn yellow" href="${nextInd ? `#/industries/${nextInd.id}` : "#/cases"}">▶ ${nextInd ? `№${nextInd.n} өндірісті бастау` : "Кейс-стади"}</a>
       <a class="btn secondary" href="#/lectures">📚 Дәрістер</a>
       <a class="btn pink" href="#/assistant">🤖 AI-дан сұрау</a>
     </div>
