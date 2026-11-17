@@ -31,6 +31,11 @@ jobs:
           node-version: 22
       - name: Build lectures list
         run: node scripts/lectures-manifest.mjs
+      - name: Cache-busting (браузер жаңа нұсқаны бірден жүктеуі үшін)
+        run: |
+          V="${GITHUB_SHA::8}"
+          find public/js -name '*.js' -exec sed -i -E "s#((from|import) \"\.{1,2}/[^\"]+\.js)\"#\1?v=$V\"#g" {} +
+          sed -i -E "s#(src=\"js/app\.js)\"#\1?v=$V\"#; s#(href=\"css/styles\.css)\"#\1?v=$V\"#" public/index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

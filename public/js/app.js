@@ -7,6 +7,7 @@ import * as assistant from "./views/assistant.js";
 import * as assessment from "./views/assessment.js";
 import * as lectures from "./views/lectures.js";
 import * as tests from "./views/tests.js";
+import * as industries from "./views/industries.js";
 import { flushOutbox } from "./submit.js";
 
 const ROUTES = {
@@ -15,6 +16,7 @@ const ROUTES = {
   principles: { view: principles, title: "Жасыл химияның 12 қағидасы", key: "principles" },
   metrics: { view: metrics, title: "Жасыл химия метрикалары", key: "metrics" },
   cases: { view: cases, title: "Case Study", key: "cases" },
+  industries: { view: industries, title: "Қазақстан өндірістері", key: "industries" },
   tests: { view: tests, title: "Тесттер", key: "tests" },
   assistant: { view: assistant, title: "AI көмекші", key: "assistant" },
   assessment: { view: assessment, title: "Бағалау және кері байланыс", key: "assessment" },

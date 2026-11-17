@@ -1,3 +1,5 @@
+import { INDUSTRIES } from "./data/industries.js";
+import { PROJECTS } from "./data/projects.js";
 // Студенттің прогресін браузерде (localStorage) сақтау.
 const KEY = "greenchemai.progress.v1";
 
@@ -7,12 +9,11 @@ const blank = () => ({
   email: "",
   quiz: {}, // { [principleId]: { answer, correct } }
   metrics: {}, // { ae|ef|pmi|rme|mm: timestamp }
-  drafts: {}, // { [caseId]: { [taskId]: value } }
-  cases: {}, // { [caseId]: result }
   tests: {}, // { [testId]: { attempts: [{ at, percent, passed, correct, total, durationSec }], best } }
   testRun: {}, // { [testId]: ағымдағы талпыныс }
   lectures: {}, // { [lectureId]: оқылған уақыт }
   journey: {}, // { [0..5]: true } — AI әдістеме жолының кезеңдері
+  industries: {}, // { [indId]: { answers:{}, checked:{}, submittedAt, viewedAt } }
   projects: {}, // { [projId]: { stages:{1..5}, resp2, field3, field4, rubric:{}, resp5 } }
   submissions: [], // ұйымдастырушыға жіберілген жұмыстар
   assistant: { questions: 0 },
@@ -63,16 +64,31 @@ export const store = {
   },
 };
 
-export const TOTALS = { quiz: 12, metrics: 4, cases: 5, tests: 4 };
-export const WEIGHTS = { tests: 0.3, cases: 0.5, quiz: 0.1, metrics: 0.1 };
+// Кейс жұмыстары: тапсырмалары бар ҚР өндірістері + жобалық кейстер.
+const caseItems = () => [
+  ...INDUSTRIES.filter((x) => x.tasks?.length).map((x) => ({ kind: "industries", id: x.id })),
+  ...PROJECTS.map((x) => ({ kind: "projects", id: x.id })),
+];
+
+export const TOTALS = {
+  quiz: 12,
+  metrics: 4,
+  tests: 4,
+  get cases() {
+    return caseItems().length;
+  },
+};
+// Кейстер бойынша тапсыру (орындалуы) есептеледі; жауаптардың сапасын оқытушы бағалайды.
+export const WEIGHTS = { tests: 0.4, cases: 0.4, quiz: 0.1, metrics: 0.1 };
 
 export function progressSummary(s = state) {
   const quizDone = Object.keys(s.quiz).length;
   const quizCorrect = Object.values(s.quiz).filter((q) => q.correct).length;
   const metricsDone = ["ae", "ef", "pmi", "rme"].filter((k) => s.metrics[k]).length;
-  const caseResults = Object.values(s.cases);
-  const casesDone = caseResults.length;
-  const caseAvg = casesDone ? caseResults.reduce((a, r) => a + r.percent, 0) / casesDone : 0;
+  const items = caseItems();
+  const casesDone = items.filter((x) => s[x.kind]?.[x.id]?.submittedAt).length;
+  const industriesDone = items.filter((x) => x.kind === "industries" && s.industries?.[x.id]?.submittedAt).length;
+  const projectsDone = casesDone - industriesDone;
   const testBests = Object.values(s.tests || {}).filter((t) => t.attempts?.length);
   const testsDone = testBests.length;
   const testsPassed = testBests.filter((t) => t.passed).length;
@@ -82,12 +98,13 @@ export function progressSummary(s = state) {
   const total = TOTALS.quiz + TOTALS.metrics + TOTALS.cases + TOTALS.tests;
   const overall = Math.round(
     (testsSum / TOTALS.tests) * WEIGHTS.tests +
-      (caseResults.reduce((a, r) => a + r.percent, 0) / TOTALS.cases) * WEIGHTS.cases +
+      (TOTALS.cases ? (casesDone / TOTALS.cases) * 100 : 0) * WEIGHTS.cases +
       (quizCorrect / TOTALS.quiz) * 100 * WEIGHTS.quiz +
       (metricsDone / TOTALS.metrics) * 100 * WEIGHTS.metrics
   );
   return {
-    quizDone, quizCorrect, metricsDone, casesDone, caseAvg, testsDone, testsPassed, testsAvg, overall,
+    quizDone, quizCorrect, metricsDone, casesDone, industriesDone, projectsDone,
+    testsDone, testsPassed, testsAvg, overall,
     done, total, percent: Math.round((done / total) * 100),
   };
 }
