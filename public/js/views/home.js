@@ -1,8 +1,8 @@
 import { store, progressSummary, TOTALS } from "../store.js";
 import { bar, esc, timeAgo, toast } from "../ui.js";
-import { CASES } from "../data/cases.js";
 import { TESTS } from "../data/quizzes.js";
-import { JOURNEY, PROJECTS } from "../data/projects.js";
+import { JOURNEY } from "../data/projects.js";
+import { INDUSTRIES } from "../data/industries.js";
 import { profileFieldsHtml, bindProfileFields } from "../profile.js";
 
 const OBJECTIVES = [
@@ -17,7 +17,8 @@ const MODULES = [
   { href: "#/lectures", icon: "📚", bg: "bg-pink", title: "Дәрістер", text: "Дәріс слайдтары, конспектілер мен бейнелер: сайтта қарау немесе жүктеп алу." },
   { href: "#/principles", icon: "🌿", bg: "bg-green", title: "12 қағида", text: "Әр қағиданың түсіндірмесі, өнеркәсіптік мысалдар және білімді тексеру сұрақтары." },
   { href: "#/metrics", icon: "📐", bg: "bg-yellow", title: "Метрикалар", text: "AE, E-фактор, PMI, RME: формулалар, шығарылған мысалдар және калькуляторлар." },
-  { href: "#/cases", icon: "📂", bg: "bg-pink", title: "Кейс-стади", text: "5 талдамалы кейс (автоматты бағалау) және AI-мен шешілетін 5 жобалық кейс." },
+  { href: "#/industries", icon: "🏭", bg: "bg-yellow", title: "ҚР өндірістері", text: "15 отандық өндіріс: процестің химиясы, масса мен энергия балансы, жауап өрістері бар кейстер." },
+  { href: "#/cases", icon: "📂", bg: "bg-pink", title: "Кейс-стади", text: "Қазақстанның 15 өндірісі бойынша жеке зерттеу кейстері және AI-мен шешілетін 5 жобалық кейс." },
   { href: "#/tests", icon: "📝", bg: "bg-green", title: "Тесттер", text: "Уақыт шегі мен өту шегі бар модуль тесттері және қорытынды емтихан." },
   { href: "#/assistant", icon: "🤖", bg: "bg-yellow", title: "AI-кеңесші", text: "Түсіндірме, бағыттаушы кеңес және жауапқа кері байланыс." },
 ];
@@ -32,8 +33,8 @@ function milestones(s, p) {
     { icon: "🧪", title: TESTS[0].title, ok: passed("test1") },
     { icon: "⚗️", title: TESTS[1].title, ok: passed("test2") },
     { icon: "🧫", title: TESTS[2].title, ok: passed("test3") },
-    { icon: "📂", title: "5 талдамалы кейс тапсырылды", ok: p.casesDone >= TOTALS.cases },
-    { icon: "🌱", title: "Жобалық кейс тапсырылды", ok: PROJECTS.some((x) => s.projects?.[x.id]?.submittedAt) },
+    { icon: "🏭", title: "ҚР өндірісі бойынша кейс тапсырылды", ok: p.industriesDone > 0 },
+    { icon: "🌱", title: "Жобалық кейс тапсырылды", ok: p.projectsDone > 0 },
     { icon: "🏆", title: "Қорытынды емтихан тапсырылды", ok: passed("final") },
   ];
 }
@@ -54,7 +55,7 @@ function flaskSvg(pct) {
 export function render(el) {
   const s = store.get();
   const p = progressSummary(s);
-  const nextCase = CASES.find((c) => !s.cases[c.id]);
+  const nextInd = INDUSTRIES.find((x) => x.tasks?.length && !s.industries?.[x.id]?.submittedAt);
   const ms = milestones(s, p);
   const earned = ms.filter((m) => m.ok).length;
 
@@ -72,7 +73,7 @@ export function render(el) {
     </div>
     ${earned === ms.length ? `<div class="celebrate">🎉 Барлық белес аяқталды! Сен — AI-жасыл химиксің!</div>` : ""}
     <div class="btn-row">
-      <a class="btn yellow" href="${nextCase ? `#/cases/${nextCase.id}` : "#/assessment"}">${nextCase ? `▶ ${nextCase.stage}-кейсті бастау` : "📊 Нәтижелерді қарау"}</a>
+      <a class="btn yellow" href="${nextInd ? `#/industries/${nextInd.id}` : "#/industries"}">▶ ${nextInd ? `№${nextInd.n} өндірісті бастау` : "ҚР өндірістері"}</a>
       <a class="btn secondary" href="#/lectures">📚 Дәрістер</a>
       <a class="btn pink" href="#/assistant">🤖 AI-дан сұрау</a>
     </div>
@@ -84,7 +85,7 @@ export function render(el) {
       ${profileFieldsHtml(s, "home")}
       <div class="rows" style="display:grid;gap:12px;margin-top:6px">
         <div><div class="row-lbl"><span>Бағаланатын тесттер</span><span>${p.testsDone}/${TOTALS.tests}${p.testsDone ? ` · ${p.testsPassed} өтті` : ""}</span></div>${bar((p.testsDone / TOTALS.tests) * 100, "pink")}</div>
-        <div><div class="row-lbl"><span>Талдамалы кейстер</span><span>${p.casesDone}/${TOTALS.cases}${p.casesDone ? ` · орт. ${Math.round(p.caseAvg)}%` : ""}</span></div>${bar((p.casesDone / TOTALS.cases) * 100)}</div>
+        <div><div class="row-lbl"><span>Кейстер (ҚР өндірістері + жобалық)</span><span>${p.casesDone}/${TOTALS.cases} тапсырылды</span></div>${bar((p.casesDone / TOTALS.cases) * 100)}</div>
         <div><div class="row-lbl"><span>12 қағида сұрақтары</span><span>${p.quizDone}/${TOTALS.quiz} · ${p.quizCorrect} дұрыс</span></div>${bar((p.quizDone / TOTALS.quiz) * 100)}</div>
         <div><div class="row-lbl"><span>Метрика калькуляторлары</span><span>${p.metricsDone}/${TOTALS.metrics}</span></div>${bar((p.metricsDone / TOTALS.metrics) * 100)}</div>
       </div>

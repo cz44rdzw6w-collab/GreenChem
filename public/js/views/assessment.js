@@ -4,22 +4,24 @@ import { CONFIG, submissionEnabled } from "../config.js";
 import { flushOutbox } from "../submit.js";
 import { PROJECTS, JOURNEY } from "../data/projects.js";
 import { projectDone } from "./projects.js";
-import { CASES, levelFor } from "../data/cases.js";
+import { levelFor, LEVELS } from "../data/levels.js";
+import { INDUSTRIES } from "../data/industries.js";
+import { industryProgress } from "./industries.js";
 import { PRINCIPLES } from "../data/principles.js";
 import { esc, ring, bar, toast, timeAgo } from "../ui.js";
-import { resultHtml, levelsLegend } from "./report.js";
 
 const METRIC_NAMES = { ae: "Атомдық үнемділік", ef: "E-фактор", pmi: "PMI", rme: "RME" };
 
 export function render(el) {
   const s = store.get();
   const p = progressSummary(s);
-  const results = CASES.filter((c) => s.cases[c.id]);
-
-  // Критерийлер бойынша жиынтық күшті/әлсіз жақтар
-  const allCrit = results.flatMap((c) => s.cases[c.id].criteria.map((k) => ({ ...k, caseTitle: c.title, stage: c.stage })));
-  const strong = allCrit.filter((k) => k.percent >= 75).sort((a, b) => b.percent - a.percent).slice(0, 5);
-  const weak = allCrit.filter((k) => k.percent < 60).sort((a, b) => a.percent - b.percent).slice(0, 5);
+  const readyInd = INDUSTRIES.filter((x) => x.tasks?.length);
+  const passedTests = TESTS.filter((t) => s.tests[t.id]?.passed);
+  const strong = [
+    ...passedTests.map((t) => `${t.title}: ${s.tests[t.id].best}%`),
+    ...readyInd.filter((x) => s.industries?.[x.id]?.submittedAt).map((x) => `№${x.n} өндіріс бойынша кейс тапсырылды`),
+    ...PROJECTS.filter((x) => s.projects?.[x.id]?.submittedAt).map((x) => `Жобалық кейс тапсырылды: ${x.title}`),
+  ].slice(0, 6);
   const wrongPrinciples = PRINCIPLES.filter((pr) => s.quiz[pr.id] && !s.quiz[pr.id].correct);
   const unanswered = PRINCIPLES.filter((pr) => !s.quiz[pr.id]);
   const missingMetrics = Object.keys(METRIC_NAMES).filter((k) => !s.metrics[k]);
@@ -36,17 +38,16 @@ export function render(el) {
   const nextTest = TESTS.find((t) => !s.tests[t.id]?.attempts?.length);
   if (failedTests.length) recs.push(`Өтпеген тесттер: ${failedTests.map((t) => t.title).join("; ")}. Тақырыпты қайталап, қайта тапсырыңыз.`);
   if (nextTest) recs.push(`Бағаланатын тест: «${nextTest.title}».`);
-  const nextCase = CASES.find((c) => !s.cases[c.id]);
-  if (nextCase) recs.push(`Келесі қадам: ${nextCase.stage}-модуль «${nextCase.title}».`);
-  weak.slice(0, 2).forEach((k) => recs.push(`«${k.name}» критерийін жетілдіріңіз (${k.stage}-кейс: ${k.percent}%) — AI көмекшінің «Кеңес» режимін пайдаланыңыз.`));
-  if (!recs.length) recs.push("Барлық тапсырма орындалды! Нәтижелерді жақсарту үшін AI арқылы терең бағалауды сұраңыз.");
+  const nextInd = readyInd.find((x) => !s.industries?.[x.id]?.submittedAt);
+  if (nextInd) recs.push(`Келесі кейс: №${nextInd.n} «${nextInd.title}».`);
+  if (!recs.length) recs.push("Барлық тапсырма орындалды! Оқытушының кері байланысын күтіңіз.");
 
   el.innerHTML = `
     <div class="section-head">
       <div>
         <div class="eyebrow">Нәтижелер</div>
         <h1>Бағалау және кері байланыс</h1>
-        <p>Тест пен кейс нәтижелері, күшті жақтар, жетілдіру бағыттары және оқу прогресі.</p>
+        <p>Тест нәтижелері, тапсырылған кейстер, жетілдіру бағыттары және оқу прогресі.</p>
       </div>
       <div class="btn-row no-print">
         <button class="btn secondary sm" id="print">🖨 Есепті басып шығару</button>
@@ -72,7 +73,7 @@ export function render(el) {
             <tr><td>Бағаланатын тесттер</td><td>${p.testsDone}/${TOTALS.tests}</td><td>${p.testsDone ? `${p.testsPassed} өтті · орт. ${Math.round(p.testsAvg)}%` : "—"}</td></tr>
             <tr><td>12 қағида бойынша сұрақтар</td><td>${p.quizDone}/${TOTALS.quiz}</td><td>${p.quizCorrect} дұрыс</td></tr>
             <tr><td>Метрика калькуляторлары</td><td>${p.metricsDone}/${TOTALS.metrics}</td><td>${p.metricsDone === 4 ? "✓ толық" : "жалғасуда"}</td></tr>
-            <tr><td>Case Study модульдері</td><td>${p.casesDone}/${TOTALS.cases}</td><td>${p.casesDone ? `орт. ${Math.round(p.caseAvg)}%` : "—"}</td></tr>
+            <tr><td>Кейстер (ҚР өндірістері + жобалық)</td><td>${p.casesDone}/${TOTALS.cases}</td><td>${p.casesDone ? "тапсырылды · сапасын оқытушы бағалайды" : "—"}</td></tr>
             <tr><td>AI көмекшіге сұрақтар</td><td colspan="2">${s.assistant.questions || 0}</td></tr>
           </tbody>
         </table></div>
@@ -82,7 +83,7 @@ export function render(el) {
         <div class="fb-cols" style="margin-top:0">
           <div class="fb strong"><h4>💪 Күшті жақтары</h4><ul>${
             strong.length
-              ? strong.map((k) => `<li>${esc(k.name)} — ${k.stage}-кейс (${k.percent}%)</li>`).join("")
+              ? strong.map((k) => `<li>${esc(k)}</li>`).join("")
               : p.quizCorrect >= 6
               ? `<li>Қағидалар бойынша тест: ${p.quizCorrect} дұрыс жауап.</li>`
               : "<li>Кейстерді орындағаннан кейін мұнда күшті жақтарыңыз көрсетіледі.</li>"
@@ -122,8 +123,8 @@ export function render(el) {
           <ul class="activity">${Object.entries(METRIC_NAMES).map(([k, n]) => `<li><a href="#/metrics?tab=${k}">${n}</a><span>${s.metrics[k] ? "✓ " + timeAgo(s.metrics[k]) : "○ орындалмаған"}</span></li>`).join("")}</ul>
         </div>
         <div>
-          <h3>Кейстер</h3>
-          <ul class="activity">${CASES.map((c) => `<li><a href="#/cases/${c.id}">${c.stage}. ${c.stageName}</a><span>${s.cases[c.id] ? `<strong class="${levelFor(s.cases[c.id].percent).cls}">${s.cases[c.id].percent}%</strong>` : "○"}</span></li>`).join("")}</ul>
+          <h3>ҚР өндірістері</h3>
+          <ul class="activity">${readyInd.map((x) => { const pr = industryProgress(x); return `<li><a href="#/industries/${x.id}/cases">№${x.n}. ${esc(x.title)}</a><span>${s.industries?.[x.id]?.submittedAt ? "📨 тапсырылды" : `${pr.done}/${pr.total}`}</span></li>`; }).join("")}</ul>
           <h3 style="margin-top:14px">Жобалық кейстер</h3>
           <ul class="activity">${PROJECTS.map((x) => `<li><a href="#/cases/${x.id}">${x.icon} ${esc(x.title)}</a><span>${s.projects?.[x.id]?.submittedAt ? "📨 тапсырылды" : `${projectDone(x.id)}/5`}</span></li>`).join("")}</ul>
           <p class="small muted" style="margin-top:8px">Әдістеме жолы: ${JOURNEY.filter((_, i) => s.journey?.[i]).length} / ${JOURNEY.length} кезең</p>
@@ -131,19 +132,12 @@ export function render(el) {
       </div>
     </div>
 
-    <div class="section" style="margin-top:18px">
-      <div class="section-head"><div><h2>Кейстер бойынша рубрикалық есептер</h2><p>Әр критерий бойынша балл, күшті жақтар және жетілдіру ұсыныстары.</p></div></div>
-      ${
-        results.length
-          ? `<div class="grid grid-2">${results.map((c) => `<div class="card">${resultHtml(s.cases[c.id], c)}<div class="btn-row no-print" style="margin-top:12px"><a class="btn secondary sm" href="#/cases/${c.id}">Жауаптарды қарау / жетілдіру</a></div></div>`).join("")}</div>`
-          : `<div class="card"><p class="muted">Әзірге бағаланған кейс жоқ.</p><a class="btn" href="#/cases/case1">1-модульді бастау</a></div>`
-      }
-    </div>
-
     <div class="card">
-      <h2>Бағалау рубрикасының деңгейлері</h2>
-      <p class="muted">Сандық жауаптар ±1–2% дәлдікпен автоматты тексеріледі (жақын нәтиже — жартылай балл). Ашық жауаптар негізгі ғылыми ұғымдардың қамтылуы және дәлелдеу көлемі бойынша бағаланады. Серверде AI қосулы болса, мұғалімнің рубрикасы бойынша қосымша сапалық пікір алуға болады.</p>
-      ${levelsLegend()}
+      <h2>Бағалау деңгейлері</h2>
+      <p class="muted">Тест сұрақтары мен сандық жауаптар автоматты тексеріледі. Кейстердің ашық жауаптары тапсырылған соң оқытушыға жіберіледі, ал олардың сапасын оқытушы бағалайды. Жалпы нәтижеде кейстердің тапсырылуы ескеріледі.</p>
+      <div class="table-wrap"><table><thead><tr><th>Деңгей</th><th>Балл</th><th>Сипаттама</th></tr></thead><tbody>
+        ${LEVELS.map((l, i) => `<tr><td class="${l.cls}"><strong>${l.name}</strong></td><td>${l.min}–${i === 0 ? 100 : LEVELS[i - 1].min - 1}%</td><td>${l.text}</td></tr>`).join("")}
+      </tbody></table></div>
     </div>`;
 
   el.querySelector("#retry")?.addEventListener("click", async () => {
