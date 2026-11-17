@@ -33,7 +33,7 @@ export function render(el, params, query) {
     el.innerHTML = `
       <div class="section-head">
         <div>
-          <div class="eyebrow">3-бөлім</div>
+          <div class="eyebrow">Сандық бағалау</div>
           <h1>Жасыл химия метрикалары</h1>
           <p>Процестің «жасылдығын» сандық бағалау: формулалар, шығарылған мысалдар және автоматты калькуляторлар.</p>
         </div>
@@ -156,8 +156,8 @@ function aePanel(panel) {
 
 // ---------------- Массалық баланс (E-фактор, PMI) ----------------
 const MASS_FIELDS = [
-  { id: "reactants", label: "Реагенттер (шикізат)", color: "#3a9a62" },
-  { id: "reagents", label: "Көмекші заттар (катализатор, негіз, қышқыл)", color: "#f6c945" },
+  { id: "reactants", label: "Реагенттер (шикізат)", color: "#6E7D45" },
+  { id: "reagents", label: "Көмекші заттар (катализатор, негіз, қышқыл)", color: "#F4C230" },
   { id: "solvents", label: "Органикалық еріткіштер", color: "#ee9aac" },
   { id: "water", label: "Су (реакция, өңдеу, жуу)", color: "#8fc3e8" },
 ];

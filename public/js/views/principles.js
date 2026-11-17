@@ -12,7 +12,7 @@ export function render(el, params) {
     el.innerHTML = `
       <div class="section-head">
         <div>
-          <div class="eyebrow">2-бөлім</div>
+          <div class="eyebrow">Анастас пен Уорнер, 1998</div>
           <h1>Жасыл химияның 12 қағидасы</h1>
           <p>П. Анастас пен Дж. Уорнер (1998) тұжырымдаған қағидалар. Қағиданы таңдап, түсіндірмені оқып, білімді тексеру сұрағына жауап беріңіз.</p>
         </div>
@@ -69,7 +69,7 @@ function drawDetail(box, p, redraw) {
           </div>
         </div>
         <div class="quiz-box">
-          <div class="eyebrow" style="color:#93324a">Білімді тексеру</div>
+          <div class="kicker">Білімді тексеру</div>
           <h3>${p.quiz.q}</h3>
           <div id="opts">${p.quiz.options.map((o, i) => `<button class="quiz-opt" data-i="${i}">${String.fromCharCode(65 + i)}) ${o}</button>`).join("")}</div>
           <div id="qfb"></div>

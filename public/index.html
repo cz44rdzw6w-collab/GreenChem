@@ -5,51 +5,36 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>GreenChemAI — Жасыл химияға кіріспе</title>
   <meta name="description" content="«Жасыл химияға кіріспе» курсына арналған жасанды интеллект пен Case Study әдістемесіне негізделген интерактивті білім беру платформасы." />
-  <meta name="theme-color" content="#2f7d4f" />
+  <meta name="theme-color" content="#4B5A2E" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
   <a class="skip-link" href="#view">Негізгі мазмұнға өту</a>
   <div class="app">
-    <aside class="sidebar" id="sidebar" aria-label="Негізгі навигация">
-      <a class="brand" href="#/">
-        <span class="brand-logo" aria-hidden="true">
-          <svg viewBox="0 0 40 40" width="36" height="36"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a9a62"/><stop offset="1" stop-color="#2f7d4f"/></linearGradient></defs><rect width="40" height="40" rx="12" fill="url(#lg)"/><path d="M15 9h10M17 9v8l-6 11a3 3 0 0 0 2.6 4.5h12.8A3 3 0 0 0 29 28l-6-11V9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.5 25c3-2.5 7.5 1.5 11 0" fill="none" stroke="#f6c945" stroke-width="2.2" stroke-linecap="round"/><circle cx="27" cy="12" r="3" fill="#f7c6d0"/></svg>
-        </span>
-        <span class="brand-text"><strong>GreenChem<span>AI</span></strong><small>Жасыл химияға кіріспе</small></span>
-      </a>
-      <nav class="nav">
+    <header class="topbar">
+      <div class="topbar-row">
+        <a class="brand" href="#/">🧪 GreenChem<span>AI</span> <small>· Жасыл химияға кіріспе</small></a>
+        <span class="ai-badge" id="aiBadge" title="AI көмекші режимі">● AI…</span>
+      </div>
+      <nav class="nav" aria-label="Негізгі навигация">
         <a href="#/" data-route="home"><span class="ico">🏠</span>Басты бет</a>
-        <a href="#/lectures" data-route="lectures"><span class="ico">🎓</span>Лекциялар</a>
+        <a href="#/lectures" data-route="lectures"><span class="ico">📚</span>Дәрістер</a>
         <a href="#/principles" data-route="principles"><span class="ico">🌿</span>12 қағида</a>
         <a href="#/metrics" data-route="metrics"><span class="ico">📐</span>Метрикалар</a>
-        <a href="#/cases" data-route="cases"><span class="ico">📂</span>Case Study</a>
+        <a href="#/cases" data-route="cases"><span class="ico">📂</span>Кейс-стади</a>
         <a href="#/tests" data-route="tests"><span class="ico">📝</span>Тесттер</a>
-        <a href="#/assistant" data-route="assistant"><span class="ico">🤖</span>AI көмекші</a>
-        <a href="#/assessment" data-route="assessment"><span class="ico">📊</span>Бағалау және кері байланыс</a>
+        <a href="#/assistant" data-route="assistant"><span class="ico">🤖</span>AI-кеңесші</a>
+        <a href="#/assessment" data-route="assessment"><span class="ico">📊</span>Бағалау</a>
       </nav>
-      <div class="sidebar-progress" id="sidebarProgress"></div>
-    </aside>
-    <div class="scrim" id="scrim" hidden></div>
-    <div class="main">
-      <header class="topbar">
-        <button class="menu-btn" id="menuBtn" aria-label="Мәзірді ашу" aria-controls="sidebar" aria-expanded="false">
-          <svg viewBox="0 0 24 24" width="24" height="24"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        </button>
-        <div class="crumb" id="crumb">Басты бет</div>
-        <div class="top-actions">
-          <span class="ai-badge" id="aiBadge" title="AI көмекші режимі">● AI тексерілуде…</span>
-        </div>
-      </header>
-      <main id="view" tabindex="-1"></main>
-      <footer class="footer">
-        <p>GreenChemAI · «Жасыл химияға кіріспе» курсының білім беру прототипі · Case Study + жасанды интеллект</p>
-      </footer>
-    </div>
+    </header>
+    <main id="view" tabindex="-1"></main>
+    <footer class="footer">
+      <p>GreenChemAI · «Жасыл химияға кіріспе» курсының білім беру платформасы · Case Study + жасанды интеллект</p>
+    </footer>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script type="module" src="js/app.js"></script>
