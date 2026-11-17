@@ -39,7 +39,7 @@ function doPost(e) {
     const s = data.student;
     sheet.appendRow([
       new Date(data.submittedAt || Date.now()),
-      ({ test: "Тест", case: "Кейс", project: "Жобалық кейс" })[data.kind] || String(data.kind || ""),
+      ({ test: "Тест", case: "Кейс", project: "Жобалық кейс", industry: "ҚР өндірісі" })[data.kind] || String(data.kind || ""),
       safe_(data.title),
       safe_(s.name),
       safe_(s.group),

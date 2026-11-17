@@ -8,6 +8,7 @@ import { ensureProfile } from "../profile.js";
 import { submitWork, statusHtml, bindStatusActions, lastSubmission } from "../submit.js";
 import { answerText } from "../evaluator.js";
 import * as projects from "./projects.js";
+import { cardsHtml as industryCards } from "./industries.js";
 
 const COLORS = { green: "bg-green", yellow: "bg-yellow", pink: "bg-pink" };
 
@@ -32,9 +33,15 @@ function renderList(el) {
     <div class="center-head" style="margin-top:6px">
       <span class="kicker">Кейс-стади әдістемесі</span>
       <h1>Шынайы өндірістік мәселелер</h1>
-      <p>Екі бағыт: <strong>талдамалы кейстер</strong> рубрика бойынша автоматты бағаланады; <strong>жобалық кейстер</strong> AI-мен бірлесіп шешіліп, оқытушыға тапсырылады.</p>
+      <p><strong>Қазақстан өндірістері</strong> — 15 отандық кәсіпорын бойынша жеке зерттеу кейстері; <strong>жобалық кейстер</strong> AI-мен бірлесіп шешіледі; <strong>талдамалы кейстер</strong> рубрика бойынша автоматты бағаланады.</p>
     </div>
-    <h2>А. Талдамалы кейстер <span class="pill">автоматты бағалау</span></h2>
+    <h2>А. Қазақстан өндірістері <span class="pill">15 жеке зерттеу кейсі</span></h2>
+    <p class="muted small">Әр өндірістің ақпараттық беті мен жауап өрістері бар кейс тапсырмалары. <a href="#/industries">Бөлек бетте ашу →</a></p>
+    <div class="grid grid-3">${industryCards()}</div>
+    <h2 style="margin-top:30px">Б. Жобалық кейстер <span class="pill pink">AI + оқытушы бағасы</span></h2>
+    <p class="muted small">Әр кейс 5 кезеңнен тұрады: мәселе → AI-дан кеңес → ғылыми тексеру → өз шешімің → рубрика бойынша бағалау.</p>
+    <div class="grid grid-2">${projects.listHtml()}</div>
+    <h2 style="margin-top:30px">В. Талдамалы кейстер <span class="pill gray">автоматты бағалау</span></h2>
     <p class="muted small">Бес прогрессивті модуль ғылыми зерттеу циклін қайталайды: мәселені анықтаудан экологиялық таза шешімді жобалауға дейін.</p>
     <div class="grid grid-3">
       ${CASES.map((c, i) => {
@@ -56,9 +63,6 @@ function renderList(el) {
         </a>`;
       }).join("")}
     </div>
-    <h2 style="margin-top:30px">Б. Жобалық кейстер <span class="pill pink">AI + оқытушы бағасы</span></h2>
-    <p class="muted small">Әр кейс 5 кезеңнен тұрады: мәселе → AI-дан кеңес → ғылыми тексеру → өз шешімің → рубрика бойынша бағалау.</p>
-    <div class="grid grid-2">${projects.listHtml()}</div>
     <div class="card" style="margin-top:22px">
       <h2>Бағалау шкаласы</h2>
       <p class="muted">Әр кейс өз рубрикасымен бағаланады: сандық жауаптар дәлдікпен (±1–2%), ашық жауаптар негізгі ғылыми ұғымдардың қамтылуы мен дәлелдеу толықтығы бойынша тексеріледі.</p>

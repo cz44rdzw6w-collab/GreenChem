@@ -258,7 +258,7 @@ tr:last-child td { border-bottom: 0; }
 
 /* ---------- Metrics ---------- */
 .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
-.tab { border: 1.5px solid var(--line); background: #fff; padding: 10px 16px; border-radius: 999px; font: inherit; font-weight: 650; cursor: pointer; color: var(--ink-2); min-height: 44px; font-size: 0.92rem; }
+.tab { text-decoration: none; display: inline-flex; align-items: center; border: 1.5px solid var(--line); background: #fff; padding: 10px 16px; border-radius: 999px; font: inherit; font-weight: 650; cursor: pointer; color: var(--ink-2); min-height: 44px; font-size: 0.92rem; }
 .tab:hover { border-color: #D3DBB8; }
 .tab.active { background: var(--green-700); border-color: var(--green-700); color: var(--yellow-500); }
 .tab .done { margin-left: 6px; }
@@ -395,6 +395,45 @@ dialog.modal::backdrop { background: rgba(29, 77, 49, 0.35); }
 video.viewer { height: auto; max-height: 75vh; background: #000; }
 .teacher-help summary { cursor: pointer; }
 .teacher-help { margin-top: 18px; }
+
+/* Қазақстан өндірістері */
+.ind-card { display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: inherit; transition: transform 0.15s, box-shadow 0.15s; }
+.ind-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.ind-card.soon { opacity: 0.78; }
+.ind-card h3 { margin: 4px 0 0; font-size: 0.95rem; }
+.ind-card .org { font-size: 0.78rem; color: var(--rose); font-weight: 800; }
+.ind-top { display: flex; justify-content: space-between; align-items: center; }
+.ind-ico { font-size: 1.4rem; }
+.ind-num { display: inline-block; background: var(--green-100); color: var(--green-700); border-radius: 999px; padding: 2px 12px; font-weight: 800; font-size: 0.8rem; }
+.ind { max-width: 860px; margin: 0 auto; }
+.ind-head { margin: 14px 0 18px; }
+.ind-head h1 { margin: 8px 0 6px; }
+.ind-head .lead { color: var(--ink-2); margin: 0 0 14px; }
+.ind .card + .card, .ind #indBody > .card { margin-top: 0; margin-bottom: 20px; }
+.ind h3.sub { font-family: "Manrope", sans-serif; font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; margin: 18px 0 6px; color: var(--green-600); font-weight: 800; }
+.ind table.kv td { vertical-align: top; }
+.ind table.kv td:last-child { font-weight: 700; text-align: right; width: 42%; }
+.ind .note { font-size: 0.84rem; color: var(--ink-3); margin-top: 8px; }
+.ind .fig { background: #FFFDF7; border-radius: 18px; padding: 8px; border: 1px solid var(--line); overflow-x: auto; }
+.ind .fig svg { min-width: 600px; display: block; height: auto; }
+.ind .ph { border: 2px dashed #C9A53E; border-radius: 18px; padding: 22px 14px; margin: 8px 0; text-align: center; color: #8A7430; background: #FFFBEF; font-size: 0.86rem; }
+.ind .st { border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; margin: 10px 0; background: #FFFDF7; }
+.ind .st h4 { margin: 0 0 6px; font-size: 1rem; color: var(--ink); }
+.ind .st .n { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--green-100); color: var(--green-700); font-weight: 800; font-size: 0.8rem; margin-right: 8px; }
+.ind .st p { margin: 4px 0; }
+.ind .eq { background: var(--green-100); border-radius: 10px; padding: 6px 10px; margin: 5px 0; font-weight: 700; font-size: 0.9rem; overflow-x: auto; white-space: nowrap; }
+.ind .cond { font-size: 0.85rem; color: var(--ink-2); }
+.ind .gc { font-size: 0.85rem; background: var(--yellow-100); border-radius: 10px; padding: 6px 10px; margin-top: 6px; }
+.ind .g { border-radius: 14px; padding: 8px 12px; margin: 6px 0; font-size: 0.9rem; }
+.ind .g b { display: block; font-size: 0.78rem; margin-bottom: 2px; }
+.g-ok { background: var(--green-100); } .g-pt { background: var(--yellow-100); } .g-bad { background: var(--pink-200); }
+.ind .src li { margin: 4px 0; font-size: 0.88rem; }
+.ind .cta { display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; background: linear-gradient(120deg, var(--yellow-100), var(--pink-100)); }
+.lv { display: inline-block; border-radius: 999px; padding: 2px 10px; font-size: 0.72rem; font-weight: 800; margin-right: 4px; vertical-align: 1px; white-space: nowrap; }
+.lv-a { background: var(--green-100); color: var(--green-700); }
+.lv-b { background: var(--yellow-100); color: #7a5b00; }
+.lv-c { background: var(--pink-200); color: #9c3b52; }
+.ind-task .task-head label { font-weight: 700; line-height: 1.5; }
 
 @media print {
   .sidebar, .topbar, .footer, .btn, .no-print { display: none !important; }
