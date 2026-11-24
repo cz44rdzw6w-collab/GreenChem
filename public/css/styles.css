@@ -427,6 +427,9 @@ video.viewer { height: auto; max-height: 75vh; background: #000; }
 .ind .g { border-radius: 14px; padding: 8px 12px; margin: 6px 0; font-size: 0.9rem; }
 .ind .g b { display: block; font-size: 0.78rem; margin-bottom: 2px; }
 .g-ok { background: var(--green-100); } .g-pt { background: var(--yellow-100); } .g-bad { background: var(--pink-200); }
+.ind table.cmp { width: 100%; border-collapse: collapse; font-size: 0.86rem; margin: 6px 0; }
+.ind table.cmp th { background: var(--yellow-100); text-align: left; padding: 7px 8px; font-size: 0.82rem; }
+.ind table.cmp td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: left; font-weight: 500; width: auto; }
 .ind .src li { margin: 4px 0; font-size: 0.88rem; }
 .ind .cta { display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; background: linear-gradient(120deg, var(--yellow-100), var(--pink-100)); }
 .lv { display: inline-block; border-radius: 999px; padding: 2px 10px; font-size: 0.72rem; font-weight: 800; margin-right: 4px; vertical-align: 1px; white-space: nowrap; }
