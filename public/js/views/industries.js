@@ -130,7 +130,7 @@ function taskHtml(t, i, a, checked) {
       </div>`;
       })
       .join("") + `
-      <label class="small" for="ans-${t.id}-work" style="margin-top:10px;display:block">Есептеу жолы</label>
+      <label class="small" for="ans-${t.id}-work" style="margin-top:10px;display:block">${esc(t.workLabel || "Есептеу жолы")}</label>
       <textarea id="ans-${t.id}-work" data-ans="${t.id}_work" placeholder="Молярлық массаларды, теңдеуді және есептеу қадамдарын жазыңыз…">${esc(a[t.id + "_work"] ?? "")}</textarea>`;
   } else {
     field = `<textarea id="ans-${t.id}" data-ans="${t.id}" placeholder="Жауабыңызды осында жазыңыз…" ${t.level === "C" ? 'style="min-height:160px"' : ""}>${esc(v)}</textarea>`;

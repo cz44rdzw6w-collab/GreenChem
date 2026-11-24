@@ -30,3 +30,12 @@ test("№2 өндірістің сандық жауаптары есептеуг
   assert.ok(Math.abs(n2o - 2.52) < 1e-9);
   assert.ok(Math.abs(n2o * 265 - 668) < 1);
 });
+
+test("№3 өндірістің сандық жауаптары есептеуге сәйкес", () => {
+  const M = 80.043;
+  assert.ok(Math.abs((2 * 14.007) / M * 100 - 35) < 0.1);
+  assert.ok(Math.abs(400 * (2 * 17.031) / M - 170) < 1);
+  const water = (63.012 / 0.58 - 63.012) / 18.015;
+  assert.ok(Math.abs(water - 2.5) < 0.05);
+  assert.ok(Math.abs(water * 44 - 111) < 1);
+});
