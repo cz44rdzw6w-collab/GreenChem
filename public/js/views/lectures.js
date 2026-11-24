@@ -27,7 +27,7 @@ function courseListHtml() {
             <span class="ci-ico">${l.icon}</span>
             <span class="ci-body"><span class="kicker" style="margin:0">${esc(l.hours)}</span><strong>${esc(l.title)}</strong><span class="small muted">${esc(l.topics)}</span></span>
             <span class="ci-state">${!l.ready ? '<span class="pill gray">Дайындалуда</span>' : seen["course:" + l.id] ? '<span class="pill">✓ Оқылды</span>' : '<span class="pill yellow">Оқу →</span>'}</span>
-          </a>`).join("")}
+          </a>${l.ready ? `<a class="ci-pdf" href="course/pdf/${l.id}.pdf" download="GreenChemAI-${l.n}-daris.pdf" title="${esc(l.title)} — PDF">⬇ PDF</a>` : ""}`).join("")}
       </div>
     </div>`;
 }
@@ -49,11 +49,17 @@ function renderCourseLecture(el, l) {
       <h1>${l.icon} ${esc(l.title)}</h1>
       <p class="lead">${esc(l.topics)}</p>
       <div class="small muted">Өткізу әдісі: ${esc(l.method)}${l.resource ? ` · Ресурстар: ${esc(l.resource)}` : ""}</div>
+      <div class="btn-row no-print" style="margin-top:12px">
+        <a class="btn secondary sm" href="course/pdf/${l.id}.pdf" download="GreenChemAI-${l.n}-daris.pdf">⬇ PDF жүктеу</a>
+        <a class="btn ghost sm" href="course/pdf/${l.id}.pdf" target="_blank" rel="noopener">PDF-ті ашу ↗</a>
+        <button class="btn ghost sm" id="lecPrint">🖨 Басып шығару</button>
+      </div>
     </div>
     <div id="lecBody"><div class="card muted">Жүктелуде…</div></div>
-    <div class="card cta"><div><h2 style="margin:0">Дәріс оқылды ма?</h2><p class="muted" style="margin:4px 0 0">Белгілесеңіз, «Дәріс курсы» прогресіне есептеледі. Сұрағыңыз қалса, AI-кеңесшіге жазыңыз.</p></div>
+    <div class="card cta no-print"><div><h2 style="margin:0">Дәріс оқылды ма?</h2><p class="muted" style="margin:4px 0 0">Белгілесеңіз, «Дәріс курсы» прогресіне есептеледі. Сұрағыңыз қалса, AI-кеңесшіге жазыңыз.</p></div>
       <span class="btn-row"><a class="btn secondary" href="#/assistant">🤖 AI-кеңесші</a><button class="btn yellow" id="lecDone"></button></span></div>
   </div>`;
+  el.querySelector("#lecPrint").addEventListener("click", () => window.print());
   const btn = el.querySelector("#lecDone");
   const key = "course:" + l.id;
   const paint = () => (btn.textContent = store.get().lectures?.[key] ? "✓ Оқылды" : "Оқыдым ✓");

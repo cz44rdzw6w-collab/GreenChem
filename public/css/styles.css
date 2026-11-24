@@ -443,6 +443,11 @@ video.viewer { height: auto; max-height: 75vh; background: #000; }
 .course-list { display: grid; gap: 8px; margin-top: 14px; }
 .course-item { display: flex; gap: 14px; align-items: center; padding: 12px 14px; border: 1px solid var(--line); border-radius: 16px; background: #fff; text-decoration: none; color: inherit; transition: border-color 0.15s, transform 0.15s; }
 .course-item:hover { border-color: var(--green-600); transform: translateY(-1px); }
+.course-list { position: relative; }
+.ci-pdf { justify-self: end; margin-top: -4px; font-size: 0.78rem; font-weight: 700; color: var(--green-700); text-decoration: none; padding: 2px 10px; }
+.ci-pdf:hover { text-decoration: underline; }
+.lec .world { background: linear-gradient(120deg, #F6F8EE, #fff); }
+.lec .world li, .lec .videos li { margin: 8px 0; }
 .course-item.soon { opacity: 0.6; pointer-events: none; }
 .ci-ico { flex: 0 0 auto; width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center; font-size: 1.3rem; background: var(--green-50); }
 .ci-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
@@ -458,8 +463,18 @@ details.qa[open] summary { margin-bottom: 6px; }
 details.qa p { margin: 0; color: var(--ink-2); }
 .lec .g ul { margin: 4px 0 0; }
 
+@page { margin: 14mm 12mm; }
 @media print {
+  body { background: #fff !important; font-size: 11.5pt; }
+  #view { padding: 0; animation: none; }
+  html, body, .app, .layout, .main, #view, .lec { background: #fff !important; min-height: 0 !important; }
+  .ind { max-width: none; }
+  .ind .fig svg { min-width: 0; }
+  details.qa { break-inside: avoid; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.75em; color: #666; word-break: break-all; }
   .sidebar, .topbar, .footer, .btn, .no-print { display: none !important; }
   .main { margin: 0; }
-  .card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+  .card { box-shadow: none; border: 1px solid #ccc; break-inside: auto; }
+  .card h2, .card h3 { break-after: avoid; }
+  table, .g, .eq, tr, li { break-inside: avoid; }
 }
