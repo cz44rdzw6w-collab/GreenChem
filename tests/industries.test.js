@@ -49,3 +49,11 @@ test("№4 өндірістің сандық жауаптары есептеуг
   assert.ok(Math.abs((500e3 * gj) / 1e6 - 2.68) < 0.02);
   assert.ok(Math.abs((500e3 * gj * 0.3) / 3.6 / 1e3 - 223) < 2);
 });
+
+test("№5 өндірістің сандық жауаптары есептеуге сәйкес", () => {
+  const M = 98.079, S = 32.06;
+  assert.ok(Math.abs(M / S - 3.06) < 0.01);
+  const sulfur = (180 * S) / M;
+  assert.ok(Math.abs(sulfur - 59) < 0.5);
+  assert.ok(Math.abs(((180 - sulfur) * 1000) / 60 - 2000) < 50);
+});
