@@ -39,3 +39,13 @@ test("№3 өндірістің сандық жауаптары есептеуг
   assert.ok(Math.abs(water - 2.5) < 0.05);
   assert.ok(Math.abs(water * 44 - 111) < 1);
 });
+
+test("№4 өндірістің сандық жауаптары есептеуге сәйкес", () => {
+  const M = 98.079;
+  assert.ok(Math.abs((500 * 32.06) / M - 163) < 1);
+  const so2 = ((500e6 / M) * (0.003 / 0.997) * 64.066) / 1e6; // мың т
+  assert.ok(Math.abs(so2 - 0.98) < 0.02);
+  const gj = (526 * 1e6) / M / 1e6; // ГДж/т
+  assert.ok(Math.abs((500e3 * gj) / 1e6 - 2.68) < 0.02);
+  assert.ok(Math.abs((500e3 * gj * 0.3) / 3.6 / 1e3 - 223) < 2);
+});
