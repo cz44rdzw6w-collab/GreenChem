@@ -97,3 +97,20 @@ test("№14–15 өндірістердің сандық жауаптары ес
   // Электролиз энергиясы, 2 В
   assert.ok(near(((1e6 / 63.546) * 2 * 96485 * 2) / 3.6e9, 1.7, 0.01));
 });
+
+test("Метрика калькуляторының өндіріс реакциялары теңестірілген", async () => {
+  const { INDUSTRY_REACTIONS } = await import("../public/js/data/industry-metrics.js");
+  const { parseEquation } = await import("../public/js/chem.js");
+  assert.equal(Object.keys(INDUSTRY_REACTIONS).length, 15);
+  for (const [id, list] of Object.entries(INDUSTRY_REACTIONS)) {
+    for (const r of list) {
+      const eq = parseEquation(r.eq);
+      assert.ok(eq.balance.balanced, `${id}: ${r.eq}`);
+      assert.ok(eq.products[r.target], `${id}: target`);
+      assert.ok(r.capacity > 0 && r.used.every((i) => i !== r.target && eq.products[i]), `${id}: used/capacity`);
+    }
+  }
+  // №1: 1 т NH₃-ке ≈0,97 т CO₂
+  const e1 = parseEquation(INDUSTRY_REACTIONS.ind1[0].eq);
+  assert.ok(Math.abs(e1.products[1].total / e1.products[0].total - 0.97) < 0.01);
+});
