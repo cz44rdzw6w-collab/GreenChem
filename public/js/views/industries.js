@@ -83,6 +83,7 @@ function header(ind, active) {
       <p class="lead">${esc(ind.enterprise)}, ${esc(ind.region)}.${ind.lead ? ` ${esc(ind.lead)}` : ""}</p>
       ${ind.ready ? `<div class="tabs" role="tablist">
         <a class="tab ${active === "info" ? "active" : ""}" href="#/industries/${ind.id}" role="tab" aria-selected="${active === "info"}">📖 Ақпарат</a>
+        <a class="tab" href="#/metrics?tab=ind&id=${ind.id}">📐 Метрикамен өлшеу</a>
         ${ind.tasks?.length ? `<a class="tab ${active === "cases" ? "active" : ""}" href="#/industries/${ind.id}/cases" role="tab" aria-selected="${active === "cases"}">✍️ Кейс тапсырмалары <span class="done">${pr.done}/${pr.total}</span></a>` : ""}
       </div>` : ""}
     </div>`;

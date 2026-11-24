@@ -1,6 +1,8 @@
 import { parseEquation, molarMass, parseFormula, fmt, formulaHtml, ATOMIC_MASS } from "../chem.js";
 import { store } from "../store.js";
 import { esc, toast } from "../ui.js";
+import { INDUSTRIES } from "../data/industries.js";
+import { INDUSTRY_REACTIONS } from "../data/industry-metrics.js";
 
 const TABS = [
   { id: "ae", name: "Атомдық үнемділік" },
@@ -8,6 +10,7 @@ const TABS = [
   { id: "pmi", name: "PMI" },
   { id: "rme", name: "RME" },
   { id: "mm", name: "Молярлық масса" },
+  { id: "ind", name: "🏭 ҚР өндірістері" },
 ];
 
 const frac = (a, b) => `<span class="frac"><span>${a}</span><span>${b}</span></span>`;
@@ -46,11 +49,12 @@ export function render(el, params, query) {
       b.addEventListener("click", () => {
         tab = b.dataset.tab;
         history.replaceState(null, "", `#/metrics?tab=${tab}`);
+        query.delete("id");
         draw();
       })
     );
     const panel = el.querySelector("#panel");
-    ({ ae: aePanel, ef: efPanel, pmi: pmiPanel, rme: rmePanel, mm: mmPanel })[tab](panel);
+    ({ ae: aePanel, ef: efPanel, pmi: pmiPanel, rme: rmePanel, mm: mmPanel, ind: (p) => indPanel(p, query.get("id")) })[tab](panel);
   };
   draw();
   return TABS.find((t) => t.id === tab).name;
@@ -415,3 +419,139 @@ function mmPanel(panel) {
   calc();
 }
 
+
+// ---------------- ҚР өндірістерін өлшеу ----------------
+const IND_COLORS = { target: "#6E7D45", used: "#F4C230", waste: "#F0A8B8" };
+
+function indPanel(panel, initialId) {
+  const list = INDUSTRIES.filter((x) => INDUSTRY_REACTIONS[x.id]);
+  let indId = INDUSTRY_REACTIONS[initialId] ? initialId : list[0].id;
+  let rxIdx = 0;
+  let state = null; // { capacity, yieldPct, used:Set }
+
+  panel.innerHTML = `
+    <div class="card">
+      <h2>Қазақстан өндірістерін метрикамен өлшеу</h2>
+      <p>Өндірісті және оның реакциясын таңдаңыз. Калькулятор жылдық өндіріс көлемі бойынша шикізат пен жанама өнімдердің массасын стехиометриямен есептеп, атомдық үнемділікті, E-фактор мен PMI-ды шығарады. Жанама өнімді тауар ретінде пайдалансаңыз, оны белгілеңіз: метрикалар қалай өзгеретінін көресіз.</p>
+      <div class="form-row">
+        <div class="field"><label for="indSel">Өндіріс</label><select id="indSel">${list.map((x) => `<option value="${x.id}">№${x.n}. ${esc(x.title)} (${esc(x.enterprise)})</option>`).join("")}</select></div>
+        <div class="field"><label for="rxSel">Реакция</label><select id="rxSel"></select></div>
+      </div>
+    </div>
+    <div class="grid grid-2" style="margin-top:18px">
+      <div class="card" id="indIn"></div>
+      <div class="card" id="indOut"></div>
+    </div>
+    <div class="card" style="margin-top:18px">
+      <h3>Есептеу әдісі</h3>
+      <div class="formula">AE = ${frac("M(мақсатты өнім)·ν", "Σ ν·M(реагенттер)")} × 100%</div>
+      <div class="formula">E<sub>стех</sub> = ${frac("Σ m(кіріс) − m(мақсатты өнім) − m(пайдаланылатын жанама өнімдер)", "m(мақсатты өнім)")}  ·  PMI<sub>стех</sub> = ${frac("Σ m(кіріс)", "m(мақсатты өнім)")}</div>
+      <p class="small muted">Шығым 100%-дан төмен болса, шикізат шығыны 1/шығым есе артады, ал әрекеттеспеген бөлігі қалдыққа есептеледі. Бұл — теориялық ең төменгі мән: еріткіштер, жуу суы, отын мен катализатор ескерілмейді, сондықтан нақты E-фактор одан жоғары болады.</p>
+    </div>`;
+
+  const indSel = panel.querySelector("#indSel");
+  const rxSel = panel.querySelector("#rxSel");
+  const inBox = panel.querySelector("#indIn");
+  const outBox = panel.querySelector("#indOut");
+  indSel.value = indId;
+
+  const rx = () => INDUSTRY_REACTIONS[indId][rxIdx];
+
+  const drawInputs = () => {
+    const r = rx();
+    const eq = parseEquation(r.eq);
+    const tgt = eq.products[r.target];
+    state = { capacity: r.capacity, yieldPct: 100, used: new Set(r.used) };
+    const ind = INDUSTRIES.find((x) => x.id === indId);
+    inBox.innerHTML = `
+      <h3 style="margin-top:0">${esc(r.label)}</h3>
+      <div class="reaction">${eq.reactants.map((x) => `${x.coef !== 1 ? fmt(x.coef, 2) : ""}${formulaHtml(x.formula)}`).join(" + ")} → ${eq.products.map((x) => `${x.coef !== 1 ? fmt(x.coef, 2) : ""}${formulaHtml(x.formula)}`).join(" + ")}</div>
+      ${eq.balance.balanced ? "" : `<div class="result-box warn" style="margin-top:8px">⚠️ Теңдеу теңестірілмеген</div>`}
+      <p class="small muted" style="margin-top:8px">${esc(r.note)}</p>
+      <div class="form-row" style="margin-top:10px">
+        <div class="field"><label for="indCap">Мақсатты өнім: ${formulaHtml(tgt.formula)}, мың т/жыл</label><input class="input" id="indCap" inputmode="decimal" value="${String(r.capacity).replace(".", ",")}"></div>
+        <div class="field"><label for="indYield">Шығым (конверсия), %</label><input class="input" id="indYield" inputmode="decimal" value="100"></div>
+      </div>
+      ${eq.products.length > 1 ? `<div class="field"><label>Жанама өнімдер тауар ретінде пайдаланылады ма?</label><div class="options">${eq.products
+        .map((p, i) => (i === r.target ? "" : `<label class="check ${state.used.has(i) ? "selected" : ""}"><input type="checkbox" data-used="${i}" ${state.used.has(i) ? "checked" : ""}><span>${formulaHtml(p.formula)} — пайдаланылады</span></label>`))
+        .join("")}</div></div>` : ""}
+      <a class="btn secondary sm" href="#/industries/${indId}">📖 №${ind.n} өндіріс бетіне өту</a>`;
+
+    inBox.querySelector("#indCap").addEventListener("input", (e) => { state.capacity = num(e.target.value); calc(); });
+    inBox.querySelector("#indYield").addEventListener("input", (e) => { state.yieldPct = num(e.target.value); calc(); });
+    inBox.querySelectorAll("[data-used]").forEach((c) =>
+      c.addEventListener("change", () => {
+        const i = Number(c.dataset.used);
+        c.checked ? state.used.add(i) : state.used.delete(i);
+        c.closest(".check").classList.toggle("selected", c.checked);
+        calc();
+      })
+    );
+    calc();
+  };
+
+  const calc = () => {
+    const r = rx();
+    const eq = parseEquation(r.eq);
+    const tgt = eq.products[r.target];
+    const P = state.capacity;
+    const y = state.yieldPct / 100;
+    if (!(P > 0) || !(y > 0 && y <= 1)) {
+      outBox.innerHTML = `<div class="result-box err">Өндіріс көлемі оң сан, шығым 0–100% аралығында болуы керек.</div>`;
+      return;
+    }
+    const k = P / tgt.total; // мың т / (ν·M) бірлігі
+    const reactants = eq.reactants.map((x) => ({ ...x, mass: (x.total * k) / y }));
+    const products = eq.products.map((x, i) => ({ ...x, i, mass: x.total * k }));
+    const input = reactants.reduce((a, x) => a + x.mass, 0);
+    const usedMass = products.filter((x) => x.i !== r.target && state.used.has(x.i)).reduce((a, x) => a + x.mass, 0);
+    const waste = Math.max(0, input - P - usedMass);
+    const sumR = eq.reactants.reduce((a, x) => a + x.total, 0);
+    const ae = (tgt.total / sumR) * 100;
+    const aeUseful = ((tgt.total + products.filter((x) => x.i !== r.target && state.used.has(x.i)).reduce((a, x) => a + x.total, 0)) / sumR) * 100;
+    const E = waste / P;
+    const PMI = input / P;
+    const unreacted = input - reactants.reduce((a, x) => a + x.mass * y, 0);
+    const shares = [
+      { label: "Мақсатты өнім", v: P, color: IND_COLORS.target },
+      { label: "Пайдаланылатын жанама өнім", v: usedMass, color: IND_COLORS.used },
+      { label: "Қалдық", v: waste, color: IND_COLORS.waste },
+    ].filter((x) => x.v > 1e-9).map((x) => ({ ...x, pct: (x.v / input) * 100 }));
+    const cls = (v, good, mid) => (v <= good ? "" : v <= mid ? "warn" : "err");
+    outBox.innerHTML = `
+      <h3 style="margin-top:0">Нәтиже</h3>
+      <div class="grid grid-2" style="gap:10px">
+        <div class="result-box ${ae >= 80 ? "" : ae >= 50 ? "warn" : "err"}"><div class="muted small">Атомдық үнемділік</div><div class="big">${fmt(ae, 1)}%</div>${state.used.size ? `<div class="small">Пайдалы өнімдер бойынша: <strong>${fmt(aeUseful, 1)}%</strong></div>` : ""}</div>
+        <div class="result-box ${cls(E, 1, 5)}"><div class="muted small">E-фактор (стехиометриялық)</div><div class="big">${fmt(E, 2)}</div><div class="small">т қалдық / т өнім</div></div>
+        <div class="result-box ${cls(PMI, 2, 6)}"><div class="muted small">PMI (стехиометриялық)</div><div class="big">${fmt(PMI, 2)}</div><div class="small">т шикізат / т өнім</div></div>
+        <div class="result-box"><div class="muted small">Жылдық қалдық</div><div class="big">${fmt(waste, 1)}</div><div class="small">мың т/жыл${unreacted > 1e-9 ? `, оның ішінде әрекеттеспеген шикізат ${fmt(unreacted, 1)}` : ""}</div></div>
+      </div>
+      <div class="stack" role="img" aria-label="Кіріс массасының таралуы">${shares.map((x) => `<span style="width:${x.pct}%;background:${x.color}" title="${x.label}: ${fmt(x.pct, 1)}%"></span>`).join("")}</div>
+      <div class="legend">${shares.map((x) => `<span><i style="background:${x.color}"></i>${x.label}: ${fmt(x.pct, 1)}%</span>`).join("")}</div>
+      <div class="table-wrap" style="margin-top:12px"><table>
+        <thead><tr><th>Рөлі</th><th>Зат</th><th>M, г/моль</th><th>Масса, мың т/жыл</th><th>т / т өнім</th></tr></thead>
+        <tbody>
+          ${reactants.map((x) => `<tr><td>Шикізат</td><td>${formulaHtml(x.formula)}</td><td>${fmt(x.M, 2)}</td><td>${fmt(x.mass, 1)}</td><td>${fmt(x.mass / P, 3)}</td></tr>`).join("")}
+          ${products.map((x) => `<tr><td>${x.i === r.target ? "<strong>Мақсатты өнім</strong>" : state.used.has(x.i) ? "Жанама өнім (тауар)" : "Жанама өнім (қалдық)"}</td><td>${formulaHtml(x.formula)}</td><td>${fmt(x.M, 2)}</td><td>${fmt(x.mass, 1)}</td><td>${fmt(x.mass / P, 3)}</td></tr>`).join("")}
+        </tbody>
+      </table></div>`;
+  };
+
+  const drawRx = () => {
+    const rs = INDUSTRY_REACTIONS[indId];
+    rxSel.innerHTML = rs.map((r, i) => `<option value="${i}">${esc(r.label)}</option>`).join("");
+    rxSel.disabled = rs.length < 2;
+    rxIdx = 0;
+    drawInputs();
+  };
+  indSel.addEventListener("change", () => {
+    indId = indSel.value;
+    history.replaceState(null, "", `#/metrics?tab=ind&id=${indId}`);
+    drawRx();
+  });
+  rxSel.addEventListener("change", () => {
+    rxIdx = Number(rxSel.value);
+    drawInputs();
+  });
+  drawRx();
+}
