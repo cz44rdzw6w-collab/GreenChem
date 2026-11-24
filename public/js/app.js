@@ -12,7 +12,7 @@ import { flushOutbox } from "./submit.js";
 
 const ROUTES = {
   "": { view: home, title: "Басты бет", key: "home" },
-  lectures: { view: lectures, title: "Лекциялар", key: "lectures" },
+  lectures: { view: lectures, title: "Дәрістер", key: "lectures" },
   principles: { view: principles, title: "Жасыл химияның 12 қағидасы", key: "principles" },
   metrics: { view: metrics, title: "Жасыл химия метрикалары", key: "metrics" },
   cases: { view: cases, title: "Case Study", key: "cases" },
