@@ -1,6 +1,83 @@
 // Лекциялар: мұғалім public/lectures/ қалтасына жүктеген материалдар.
 import { store } from "../store.js";
-import { esc } from "../ui.js";
+import { esc, bar } from "../ui.js";
+import { COURSE_LECTURES, courseLectureById } from "../data/course-lectures.js";
+
+const courseCache = new Map();
+async function loadCourse(id) {
+  if (courseCache.has(id)) return courseCache.get(id);
+  const res = await fetch(`course/${id}.html`, { cache: "no-cache" });
+  if (!res.ok) throw new Error(res.status);
+  const html = await res.text();
+  courseCache.set(id, html);
+  return html;
+}
+
+function courseListHtml() {
+  const seen = store.get().lectures || {};
+  const ready = COURSE_LECTURES.filter((l) => l.ready);
+  const done = ready.filter((l) => seen["course:" + l.id]).length;
+  return `
+    <div class="card">
+      <div class="section-head" style="margin-bottom:6px"><h2 style="margin:0">📖 Дәріс курсы</h2><span class="small muted">Оқылды: ${done} / ${ready.length}</span></div>
+      ${bar(ready.length ? (done / ready.length) * 100 : 0)}
+      <div class="course-list">
+        ${COURSE_LECTURES.map((l) => `
+          <a class="course-item ${l.ready ? "" : "soon"}" href="${l.ready ? `#/lectures/${l.id}` : "#/lectures"}" ${l.ready ? "" : 'aria-disabled="true"'}>
+            <span class="ci-ico">${l.icon}</span>
+            <span class="ci-body"><span class="kicker" style="margin:0">${esc(l.hours)}</span><strong>${esc(l.title)}</strong><span class="small muted">${esc(l.topics)}</span></span>
+            <span class="ci-state">${!l.ready ? '<span class="pill gray">Дайындалуда</span>' : seen["course:" + l.id] ? '<span class="pill">✓ Оқылды</span>' : '<span class="pill yellow">Оқу →</span>'}</span>
+          </a>`).join("")}
+      </div>
+    </div>`;
+}
+
+function renderCourseLecture(el, l) {
+  const i = COURSE_LECTURES.indexOf(l);
+  const prev = COURSE_LECTURES.slice(0, i).reverse().find((x) => x.ready);
+  const next = COURSE_LECTURES.slice(i + 1).find((x) => x.ready);
+  el.innerHTML = `<div class="ind lec">
+    <div class="btn-row" style="justify-content:space-between">
+      <a class="btn ghost sm" href="#/lectures">← Дәріс курсы</a>
+      <span class="btn-row">
+        ${prev ? `<a class="btn ghost sm" href="#/lectures/${prev.id}">‹ ${prev.n}-тақырып</a>` : ""}
+        ${next ? `<a class="btn ghost sm" href="#/lectures/${next.id}">${next.n}-тақырып ›</a>` : ""}
+      </span>
+    </div>
+    <div class="ind-head">
+      <span class="ind-num">${l.n}-тақырып · ${esc(l.hours)}</span>
+      <h1>${l.icon} ${esc(l.title)}</h1>
+      <p class="lead">${esc(l.topics)}</p>
+      <div class="small muted">Өткізу әдісі: ${esc(l.method)}${l.resource ? ` · Ресурстар: ${esc(l.resource)}` : ""}</div>
+    </div>
+    <div id="lecBody"><div class="card muted">Жүктелуде…</div></div>
+    <div class="card cta"><div><h2 style="margin:0">Дәріс оқылды ма?</h2><p class="muted" style="margin:4px 0 0">Белгілесеңіз, «Дәріс курсы» прогресіне есептеледі. Сұрағыңыз қалса, AI-кеңесшіге жазыңыз.</p></div>
+      <span class="btn-row"><a class="btn secondary" href="#/assistant">🤖 AI-кеңесші</a><button class="btn yellow" id="lecDone"></button></span></div>
+  </div>`;
+  const btn = el.querySelector("#lecDone");
+  const key = "course:" + l.id;
+  const paint = () => (btn.textContent = store.get().lectures?.[key] ? "✓ Оқылды" : "Оқыдым ✓");
+  paint();
+  btn.addEventListener("click", () => {
+    const on = !store.get().lectures?.[key];
+    store.update((st) => {
+      st.lectures = { ...(st.lectures || {}) };
+      if (on) st.lectures[key] = Date.now();
+      else delete st.lectures[key];
+    }, on ? `Дәріс оқылды: ${l.title}` : "");
+    paint();
+    if (on && next) btn.insertAdjacentHTML("afterend", ` <a class="btn" href="#/lectures/${next.id}">Келесі тақырып →</a>`);
+  });
+  loadCourse(l.id)
+    .then((html) => {
+      const body = el.querySelector("#lecBody");
+      if (body) body.innerHTML = html;
+    })
+    .catch(() => {
+      const body = el.querySelector("#lecBody");
+      if (body) body.innerHTML = `<div class="card bad">Дәрісті жүктеу мүмкін болмады. Бетті жаңартып көріңіз.</div>`;
+    });
+}
 
 const TYPE_INFO = {
   pdf: { icon: "📕", label: "PDF" },
@@ -98,15 +175,22 @@ const TEACHER_HELP = `
     <p class="small muted">Браузер арқылы жүктелетін бір файлдың көлемі 25 МБ-тан аспауы керек. Ұзақ бейнелерді YouTube-қа жүктеп, сілтемесін қосқан дұрыс.</p>
   </details>`;
 
-export function render(el) {
+export function render(el, params = []) {
+  const cl = courseLectureById(params[0]);
+  if (cl && cl.ready) {
+    renderCourseLecture(el, cl);
+    return `${cl.n}-тақырып`;
+  }
   el.innerHTML = `
     <div class="section-head">
       <div>
         <div class="eyebrow">Оқу материалдары</div>
-        <h1>Лекциялар</h1>
-        <p>Дәріс слайдтары, конспектілер және бейнелер. Материалдарды сайтта қарауға немесе жүктеп алуға болады.</p>
+        <h1>Дәрістер</h1>
+        <p>Силлабус бойынша 15 тақырыптан тұратын дәріс курсы және оқытушы жүктеген қосымша материалдар.</p>
       </div>
     </div>
+    ${courseListHtml()}
+    <h2 style="margin-top:26px">📎 Қосымша материалдар</h2>
     <div id="lecList"><div class="card muted">Жүктелуде…</div></div>
     ${TEACHER_HELP}`;
 

@@ -114,3 +114,12 @@ test("Метрика калькуляторының өндіріс реакци�
   const e1 = parseEquation(INDUSTRY_REACTIONS.ind1[0].eq);
   assert.ok(Math.abs(e1.products[1].total / e1.products[0].total - 0.97) < 0.01);
 });
+
+test("Дәріс курсы: 15 тақырып, дайындарының файлы бар", async () => {
+  const { COURSE_LECTURES } = await import("../public/js/data/course-lectures.js");
+  assert.equal(COURSE_LECTURES.length, 15);
+  for (const l of COURSE_LECTURES.filter((x) => x.ready)) {
+    const html = fs.readFileSync(new URL(`../public/course/${l.id}.html`, import.meta.url), "utf8");
+    assert.ok(html.includes("Өзін-өзі тексеру") && html.includes("Оқу мақсаттары"), l.id);
+  }
+});
